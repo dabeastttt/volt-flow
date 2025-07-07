@@ -189,6 +189,36 @@ app.get('/dashboard', async (req, res) => {
   }
 });
 
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+app.post('/create-checkout-session', async (req, res) => {
+  const { plan } = req.body; // expect "weekly" or "monthly"
+  
+  let priceId;
+  if (plan === 'weekly') {
+    priceId = process.env.STRIPE_WEEKLY_PRICE_ID;
+  } else if (plan === 'monthly') {
+    priceId = process.env.STRIPE_MONTHLY_PRICE_ID;
+  } else {
+    return res.status(400).json({ error: 'Invalid plan selected' });
+  }
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      payment_method_types: ['card'],
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${process.env.BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.BASE_URL}/cancel`,
+    });
+
+    res.json({ url: session.url });
+  } catch (err) {
+    console.error('Stripe checkout session error:', err);
+    res.status(500).json({ error: 'Failed to create checkout session' });
+  }
+});
+
 app.listen(port, () => {
   console.log(`⚡️ Volt Flow AI listening on port ${port}`);
 });
