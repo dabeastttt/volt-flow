@@ -151,9 +151,9 @@ app.post('/register', async (req, res) => {
 //
 // Simple success page
 app.get('/success', (req, res) => {
-  res.send(`app.get('/success', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'success.html'));
 });
+
 
 });
 

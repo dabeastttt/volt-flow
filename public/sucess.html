@@ -1,134 +1,168 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Success — Volt Flow</title>
-  <style>
-    /* Full screen black background */
-    body {
-      margin: 0;
-      overflow: hidden;
-      background: black;
-      color: #0F0;
-      font-family: 'Courier New', Courier, monospace;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      position: relative;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Success — Volt Flow</title>
+<style>
+  /* Background & body style */
+  body, html {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    overflow: hidden;
+    background: #001426;
+    color: #00aaff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
 
-    canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 0;
-    }
+  canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+  }
 
-    /* Centered success box */
-    .success-box {
-      position: relative;
-      z-index: 1;
-      background: rgba(0, 0, 0, 0.75);
-      border: 2px solid #0f0;
-      padding: 30px 50px;
-      border-radius: 12px;
-      box-shadow: 0 0 15px #0f0;
-      text-align: center;
-      max-width: 400px;
-    }
+  /* Success box style */
+  .success-box {
+    position: relative;
+    z-index: 1;
+    background: rgba(3, 25, 52, 0.85);
+    border-radius: 16px;
+    padding: 2.5rem 3rem;
+    box-shadow: 0 0 20px #004aadcc;
+    max-width: 420px;
+    text-align: center;
+  }
 
-    .success-box h1 {
-      font-size: 3rem;
-      margin-bottom: 10px;
-      color: #0f0;
-      text-shadow: 0 0 10px #0f0;
-    }
+  /* Lightning bolt SVG with glow */
+  .bolt-wrapper {
+    margin-bottom: 1rem;
+  }
 
-    .success-box p {
-      font-size: 1.25rem;
-      margin-bottom: 20px;
-      color: #0f0a;
-      text-shadow: 0 0 5px #0f0;
-    }
+  .bolt-svg {
+    width: 100px;
+    height: 100px;
+    fill: url(#boltGradient);
+    filter: drop-shadow(0 0 8px #00aaffaa);
+    animation: glowPulse 3s ease-in-out infinite;
+    margin: 0 auto;
+  }
 
-    .success-box a {
-      display: inline-block;
-      text-decoration: none;
-      color: black;
-      background: #0f0;
-      padding: 12px 25px;
-      font-weight: bold;
-      border-radius: 8px;
-      transition: background-color 0.3s ease;
-      box-shadow: 0 0 15px #0f0;
-    }
+  @keyframes glowPulse {
+    0%, 100% { filter: drop-shadow(0 0 8px #00aaffaa); }
+    50% { filter: drop-shadow(0 0 16px #33bbffcc); }
+  }
 
-    .success-box a:hover {
-      background: #00ff00;
-      box-shadow: 0 0 20px #00ff00;
-    }
-  </style>
+  h1 {
+    font-size: 2.8rem;
+    font-weight: 900;
+    margin: 0.5rem 0 1rem;
+    text-shadow: 0 0 15px #00aaffbb;
+  }
+
+  p {
+    font-size: 1.25rem;
+    margin-bottom: 2rem;
+    color: #a0d4ffcc;
+  }
+
+  a {
+    text-decoration: none;
+    color: #00406f;
+    background: #00aaff;
+    padding: 12px 25px;
+    font-weight: 700;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px #00aaffcc;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  a:hover, a:focus {
+    background: #33bbff;
+    color: #002a49;
+    box-shadow: 0 8px 24px #33bbffdd;
+    outline: none;
+  }
+</style>
 </head>
 <body>
-  <canvas id="matrix"></canvas>
 
-  <div class="success-box">
-    <h1>✅ You're all set!</h1>
-    <p>Thanks for registering. Your Volt AI assistant is now live.</p>
-    <a href="/">Back to Home</a>
+<canvas id="matrixCanvas"></canvas>
+
+<div class="success-box">
+  <div class="bolt-wrapper" aria-hidden="true" title="Lightning Bolt">
+    <svg class="bolt-svg" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Lightning Bolt">
+      <defs>
+        <linearGradient id="boltGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#00f0ff" />
+          <stop offset="100%" stop-color="#007acc" />
+        </linearGradient>
+      </defs>
+      <path d="M28 2 L12 36 H28 L20 62 L52 26 H34 L44 2 Z"/>
+    </svg>
   </div>
+  <h1>You're all set!</h1>
+  <p>Thanks for registering. Your Volt Flow AI assistant is now live.</p>
+  <a href="/">Back to Home</a>
+</div>
 
-  <script>
-    // Matrix rain effect adapted for canvas
-    const canvas = document.getElementById('matrix');
-    const ctx = canvas.getContext('2d');
+<script>
+  const canvas = document.getElementById('matrixCanvas');
+  const ctx = canvas.getContext('2d');
 
-    // Make canvas full screen
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+  let width, height;
+  const fontSize = 16;
+  let columns;
+  const letters = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズヅブプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴンABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let drops = [];
 
-    const letters = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズヅブプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴンABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
 
-    const fontSize = 18;
-    const columns = canvas.width / fontSize; // number of columns for the rain
+    columns = Math.floor(width / fontSize);
+    drops = [];
+    for (let i = 0; i < columns; i++) {
+      drops[i] = 1;
+    }
+  }
 
-    // An array of drops - one per column
-    const drops = Array(Math.floor(columns)).fill(1);
+  resize();
+  window.addEventListener('resize', resize);
 
-    function draw() {
-      // Black BG with opacity to show trail effect
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+  function draw() {
+    ctx.fillStyle = 'rgba(0, 20, 50, 0.2)'; // Dark blue translucent bg for trail effect
+    ctx.fillRect(0, 0, width, height);
 
-      ctx.fillStyle = '#0F0'; // green text
-      ctx.font = fontSize + 'px monospace';
+    ctx.fillStyle = '#00aaff'; // Blue matrix letters
+    ctx.font = fontSize + 'px monospace';
 
-      for (let i = 0; i < drops.length; i++) {
-        // Pick a random letter from the string
-        const text = letters.charAt(Math.floor(Math.random() * letters.length));
-        // x = i * fontSize, y = drops[i] * fontSize
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+    for (let i = 0; i < drops.length; i++) {
+      const text = letters.charAt(Math.floor(Math.random() * letters.length));
+      const x = i * fontSize;
+      const y = drops[i] * fontSize;
 
-        // Reset drop to top randomly after it reaches bottom
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-          drops[i] = 0;
-        }
+      ctx.fillText(text, x, y);
 
-        // Move drop down
-        drops[i]++;
+      if (y > height && Math.random() > 0.975) {
+        drops[i] = 0;
       }
+      drops[i] += 0.3;
     }
 
-    setInterval(draw, 50);
+    requestAnimationFrame(draw);
+  }
 
-    // Resize canvas on window resize
-    window.addEventListener('resize', () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    });
-  </script>
+  draw();
+</script>
+
 </body>
 </html>
