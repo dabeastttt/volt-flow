@@ -197,7 +197,9 @@ app.get('/dashboard', async (req, res) => {
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 app.post('/create-checkout-session', async (req, res) => {
-  const { plan } = req.body; // expect "weekly" or "monthly"
+return res.status(200).json({ url: `${process.env.BASE_URL}/success` });
+ 
+/* const { plan } = req.body; // expect "weekly" or "monthly"
   
   let priceId;
   if (plan === 'weekly') {
@@ -222,6 +224,7 @@ app.post('/create-checkout-session', async (req, res) => {
     console.error('Stripe checkout session error:', err);
     res.status(500).json({ error: 'Failed to create checkout session' });
   }
+   */
 });
 
 app.listen(port, () => {
