@@ -42,6 +42,11 @@ app.get('/success', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'success.html'));
 });
 
+//backend
+app.get('/', (req, res) => {
+  res.send('⚡️ Volt Flow backend is alive!');
+});
+
 
 // Rate limiter: max 5 requests per minute per phone number or IP
 const limiter = rateLimit({
