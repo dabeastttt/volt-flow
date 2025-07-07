@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<script src="https://js.stripe.com/v3/"></script>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Volt Flow Signup</title>
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  body, html {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #001426;
+    overflow-x: hidden;
+    color: #d0e7ff;
+  }
+
+  #matrixCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    background: #001426;
+  }
+
+  main {
+    position: relative;
+    z-index: 10;
+    max-width: 440px;
+    margin: 3rem auto;
+    background: rgba(3, 25, 52, 0.85);
+    border-radius: 16px;
+    box-shadow: 0 0 20px #004aadcc;
+    padding: 2.5rem 3rem;
+  }
+
+  .mascot-wrapper {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .mascot-svg {
+    width: 140px;
+    height: 140px;
+    fill: #00aaff;
+    filter: drop-shadow(0 0 8px #00aaffaa);
+    animation: glowPulse 3s ease-in-out infinite;
+  }
+
+  @keyframes glowPulse {
+    0%, 100% { filter: drop-shadow(0 0 8px #00aaffaa); }
+    50% { filter: drop-shadow(0 0 16px #33bbffcc); }
+  }
+
+  h1 {
+    font-weight: 900;
+    font-size: 2.6rem;
+    margin: 0 0 0.6rem;
+    text-align: center;
+    color: #00aaff;
+    text-shadow: 0 0 15px #00aaffbb;
+  }
+
+  h2 {
+    font-weight: 400;
+    font-size: 1.15rem;
+    margin: 0 0 2rem;
+    text-align: center;
+    color: #a0d4ffcc;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+    color: #66bfffcc;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 10px;
+    border: none;
+    font-size: 1rem;
+    color: #00334d;
+    background-color: #a5f3ff;
+    box-shadow: inset 0 2px 6px #6bc7ffaa;
+    transition: background-color 0.3s ease;
+  }
+
+  input:focus,
+  select:focus {
+    background-color: #c2f0ff;
+    outline: none;
+    box-shadow: 0 0 15px #00aaffcc;
+  }
+
+  button {
+    width: 100%;
+    padding: 0.9rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #00406f;
+    background: #00aaff;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 6px 18px #00aaffcc;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  button:hover,
+  button:focus {
+    background: #33bbff;
+    color: #002a49;
+    box-shadow: 0 8px 24px #33bbffdd;
+    outline: none;
+  }
+
+  @media (max-width: 480px) {
+    main {
+      margin: 2rem 1rem;
+      padding: 2rem 1.5rem;
+    }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="matrixCanvas"></canvas>
+
+<main>
+  <div class="mascot-wrapper" aria-hidden="true" title="Lightning Bolt Mascot">
+    <svg class="mascot-svg" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="Lightning Bolt Mascot" role="img">
+      <defs>
+        <filter id="softGlow" x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur1" />
+          <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur2" />
+          <feMerge>
+            <feMergeNode in="blur2" />
+            <feMergeNode in="blur1" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+        <linearGradient id="boltGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#00f0ff" />
+          <stop offset="100%" stop-color="#007acc" />
+        </linearGradient>
+      </defs>
+      <path d="M28 2 L12 36 H28 L20 62 L52 26 H34 L44 2 Z" fill="url(#boltGradient)" filter="url(#softGlow)" />
+    </svg>
+  </div>
+
+  <h1>Volt Flow</h1>
+  <h2>Automated Admin for Busy Electricians — Save Time, Work Smarter</h2>
+
+  <form id="signupForm" autocomplete="off" novalidate>
+    <label for="name">Full Name</label>
+    <input type="text" id="name" name="name" placeholder="NAME" required />
+
+    <label for="business">Business Name</label>
+    <input type="text" id="business" name="business" placeholder="Business Name" required />
+
+    <label for="email">Email Address</label>
+    <input type="email" id="email" name="email" placeholder="Email@example.com" required />
+
+    <label for="phone">Mobile Number</label>
+    <input type="tel" id="phone" name="phone" placeholder="Number" pattern="[0-9\s\-+]+" required />
+
+    <label for="planSelect">Select Subscription Plan:</label>
+    <select id="planSelect" name="planSelect" required>
+      <option value="weekly">Weekly - $7 / week</option>
+      <option value="monthly">Monthly - $30 / month</option>
+    </select>
+
+    <button type="submit">Subscribe &amp; Unlock Volt Flow</button>
+  </form>
+</main>
+
+<script>
+  const canvas = document.getElementById('matrixCanvas');
+  const ctx = canvas.getContext('2d');
+
+  let width, height;
+  const fontSize = 16;
+  let columns;
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*+-=';
+  let drops = [];
+
+  function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+
+    columns = Math.floor(width / fontSize);
+    drops = [];
+    for (let i = 0; i < columns; i++) {
+      drops[i] = 1;
+    }
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+
+  function draw() {
+    ctx.fillStyle = 'rgba(0, 20, 50, 0.2)';
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.fillStyle = '#00aaff';
+    ctx.font = fontSize + 'px monospace';
+
+    for (let i = 0; i < drops.length; i++) {
+      const text = letters.charAt(Math.floor(Math.random() * letters.length));
+      const x = i * fontSize;
+      const y = drops[i] * fontSize;
+
+      ctx.fillText(text, x, y);
+
+      if (y > height && Math.random() > 0.975) {
+        drops[i] = 0;
+      }
+      drops[i] += 0.3;
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  draw();
+
+  document.getElementById('signupForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+      const response = await fetch('/register', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+      });
+
+     if (response.ok) {
+  const stripeSession = await fetch('/create-checkout-session', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ plan: data.planSelect })  // send selected plan
+  });
+
+  const session = await stripeSession.json();
+  if (session.url) {
+    window.location.href = session.url; // Redirect to Stripe Checkout
+  } else {
+    alert("Error launching Stripe checkout.");
+  }
+} else {
+  alert("Oops, something went wrong. Please try again.");
+}
+    } catch (error) {
+      alert("Network error. Please check your connection.");
+    }
+  });
+</script>
+
+</body>
+</html>
+
+
