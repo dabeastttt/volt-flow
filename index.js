@@ -37,6 +37,11 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+//Added
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'public.html'));
+});
+
 // Rate limiter: max 5 requests per minute per phone number or IP
 const limiter = rateLimit({
   windowMs: 60 * 1000,
