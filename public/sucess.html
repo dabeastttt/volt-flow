@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Success — Volt Flow</title>
+  <style>
+    /* Full screen black background */
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: black;
+      color: #0F0;
+      font-family: 'Courier New', Courier, monospace;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      position: relative;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+
+    /* Centered success box */
+    .success-box {
+      position: relative;
+      z-index: 1;
+      background: rgba(0, 0, 0, 0.75);
+      border: 2px solid #0f0;
+      padding: 30px 50px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px #0f0;
+      text-align: center;
+      max-width: 400px;
+    }
+
+    .success-box h1 {
+      font-size: 3rem;
+      margin-bottom: 10px;
+      color: #0f0;
+      text-shadow: 0 0 10px #0f0;
+    }
+
+    .success-box p {
+      font-size: 1.25rem;
+      margin-bottom: 20px;
+      color: #0f0a;
+      text-shadow: 0 0 5px #0f0;
+    }
+
+    .success-box a {
+      display: inline-block;
+      text-decoration: none;
+      color: black;
+      background: #0f0;
+      padding: 12px 25px;
+      font-weight: bold;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 0 15px #0f0;
+    }
+
+    .success-box a:hover {
+      background: #00ff00;
+      box-shadow: 0 0 20px #00ff00;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="matrix"></canvas>
+
+  <div class="success-box">
+    <h1>✅ You're all set!</h1>
+    <p>Thanks for registering. Your Volt AI assistant is now live.</p>
+    <a href="/">Back to Home</a>
+  </div>
+
+  <script>
+    // Matrix rain effect adapted for canvas
+    const canvas = document.getElementById('matrix');
+    const ctx = canvas.getContext('2d');
+
+    // Make canvas full screen
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const letters = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズヅブプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴンABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+    const fontSize = 18;
+    const columns = canvas.width / fontSize; // number of columns for the rain
+
+    // An array of drops - one per column
+    const drops = Array(Math.floor(columns)).fill(1);
+
+    function draw() {
+      // Black BG with opacity to show trail effect
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#0F0'; // green text
+      ctx.font = fontSize + 'px monospace';
+
+      for (let i = 0; i < drops.length; i++) {
+        // Pick a random letter from the string
+        const text = letters.charAt(Math.floor(Math.random() * letters.length));
+        // x = i * fontSize, y = drops[i] * fontSize
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        // Reset drop to top randomly after it reaches bottom
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+
+        // Move drop down
+        drops[i]++;
+      }
+    }
+
+    setInterval(draw, 50);
+
+    // Resize canvas on window resize
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+  </script>
+</body>
+</html>
