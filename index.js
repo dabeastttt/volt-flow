@@ -37,10 +37,11 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-//Added
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'public.html'));
+// Serve success.html at /success (optional because it’s already in public)
+app.get('/success', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'success.html'));
 });
+
 
 // Rate limiter: max 5 requests per minute per phone number or IP
 const limiter = rateLimit({
