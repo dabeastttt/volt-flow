@@ -144,19 +144,12 @@ app.post('/register', async (req, res) => {
       console.error('Error sending welcome SMS:', err);
     });
 
-  } catch (err) {
+ } catch (err) {
     console.error('DB error:', err);
     res.status(500).send('Something went wrong');
   }
 });
-//
-// Simple success page
-app.get('/success', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'success.html'));
-});
 
-
-});
 
 // 📊 View dashboard (basic HTML)
 app.get('/dashboard', async (req, res) => {
@@ -235,7 +228,6 @@ return res.status(200).json({ url: `${process.env.BASE_URL}/success` });
   }
    */
 });
-
 app.listen(port, () => {
   console.log(`⚡️ Volt Flow AI listening on port ${port}`);
 });
