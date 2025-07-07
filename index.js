@@ -148,6 +148,20 @@ app.post('/register', async (req, res) => {
     res.status(500).send('Something went wrong');
   }
 });
+//
+// Simple success page
+app.get('/success', (req, res) => {
+  res.send(`
+    <html>
+      <head><title>Success</title></head>
+      <body style="font-family: sans-serif; text-align: center; padding: 50px;">
+        <h1>✅ You're all set!</h1>
+        <p>Thanks for registering. Your Volt AI assistant is now live.</p>
+        <a href="/" style="color: #007acc;">Back to Home</a>
+      </body>
+    </html>
+  `);
+});
 
 // 📊 View dashboard (basic HTML)
 app.get('/dashboard', async (req, res) => {
