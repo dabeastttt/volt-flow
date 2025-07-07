@@ -8,7 +8,7 @@ const path = require('path');
 const { logMessage, getMessagesForPhone, registerTradie } = require('./db');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 10000;
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
@@ -59,7 +59,7 @@ app.post('/sms', async (req, res) => {
 
   try {
     // Default tradie number for now — single bot setup
-    const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61406435844';
+    const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61418723328';
 
     if (/book|schedule|call/i.test(incomingMsg)) {
       outgoingMsg = `Thanks for booking! The sparkie will be in touch soon. Cheers!`;
@@ -222,5 +222,6 @@ app.post('/create-checkout-session', async (req, res) => {
 app.listen(port, () => {
   console.log(`⚡️ Volt Flow AI listening on port ${port}`);
 });
+
 
 
