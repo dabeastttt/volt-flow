@@ -46,18 +46,42 @@
     margin-bottom: 1.5rem;
   }
 
-  .mascot-svg {
-    width: 140px;
-    height: 140px;
-    fill: #00aaff;
-    filter: drop-shadow(0 0 8px #00aaffaa);
-    animation: glowPulse 3s ease-in-out infinite;
-  }
+.bolt-svg.glow-icon {
+  width: 60px;     /* adjust as needed */
+  height: 60px;
+  filter: drop-shadow(0 0 8px #00aaffaa);
+  animation: glowPulse 3s ease-in-out infinite;
+}
 
-  @keyframes glowPulse {
-    0%, 100% { filter: drop-shadow(0 0 8px #00aaffaa); }
-    50% { filter: drop-shadow(0 0 16px #33bbffcc); }
+@keyframes glowPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px #00aaffaa);
   }
+  50% {
+    filter: drop-shadow(0 0 16px #33bbffcc);
+  }
+}
+
+.bolt-wrapper {
+  display: flex;
+  justify-content: center;
+  animation: slideToCenter 1.8s ease-out forwards;
+  transform: translateX(100%);
+  opacity: 0;
+  margin-bottom: 1.5rem;
+}
+
+@keyframes slideToCenter {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
 
   h1 {
     font-weight: 900;
@@ -141,29 +165,21 @@
 <canvas id="matrixCanvas"></canvas>
 
 <main>
-  <div class="mascot-wrapper" aria-hidden="true" title="Lightning Bolt Mascot">
-    <svg class="mascot-svg" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="Lightning Bolt Mascot" role="img">
+  <div class="bolt-wrapper">
+    <svg class="bolt-svg glow-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Lightning Bolt">
       <defs>
-        <filter id="softGlow" x="-100%" y="-100%" width="300%" height="300%">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur1" />
-          <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur2" />
-          <feMerge>
-            <feMergeNode in="blur2" />
-            <feMergeNode in="blur1" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
         <linearGradient id="boltGradient" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stop-color="#00f0ff" />
           <stop offset="100%" stop-color="#007acc" />
         </linearGradient>
       </defs>
-      <path d="M28 2 L12 36 H28 L20 62 L52 26 H34 L44 2 Z" fill="url(#boltGradient)" filter="url(#softGlow)" />
+      <path fill="url(#boltGradient)" d="M28 2 L12 36 H28 L20 62 L52 26 H34 L44 2 Z"/>
     </svg>
   </div>
 
   <h1>A.I APPRENTICE</h1>
-  <h2>Automated Admin for Busy Tradies   Save Time, Work Smarter</h2>
+  <h2>Automated Admin for Busy Tradies -   
+   Save Time Work Smarter</h2>
 
   <form id="signupForm" autocomplete="off" novalidate>
     <label for="name">Full Name</label>
