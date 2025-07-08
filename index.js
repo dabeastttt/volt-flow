@@ -57,7 +57,7 @@ const limiter = rateLimit({
 });
 app.use('/sms', limiter);
 
-//SMS HAndler
+// SMS Handler
 app.post('/sms', async (req, res) => {
   const incomingMsgRaw = req.body.Body || '';
   const incomingMsg = incomingMsgRaw.trim();
@@ -68,15 +68,17 @@ app.post('/sms', async (req, res) => {
   console.log(`SMS from ${sender}: ${incomingMsg}`);
 
   try {
-    // Check if you already know this customer (returns null or { phone, name })
-    let customer = await getCustomerByPhone(sender);
+    const customer = await getCustomerByPhone(sender);
 
-    // Check if message looks like booking, schedule, or call
-    const isBookingRequest = /(book|booking|schedule|call|quote|quoting|job|ring|call\s?back)/i.test(incomingMsg);
+    // Detect intent
+    const isBooking = /(book(ing)?|schedule|job)/i.test(incomingMsg);
+    const isQuote = /(quote|quoting|how much|cost|price)/i.test(incomingMsg);
+    const isCallback = /(call\s?back|ring|talk|speak)/i.test(incomingMsg);
+    const isBookingRequest = (isBooking || isQuote || isCallback);
 
-    // If booking request but no customer or customer name, ask for their name
+    // Step 1: Ask for name if it's a booking but no known customer name
     if (isBookingRequest && (!customer || !customer.name)) {
-      outgoingMsg = "Hi! To help with your booking, could you please reply with your full name?";
+      outgoingMsg = "Hi! To help with your request, could you please reply with your full name?";
 
       await twilioClient.messages.create({
         body: outgoingMsg,
@@ -84,11 +86,11 @@ app.post('/sms', async (req, res) => {
         to: sender,
       });
 
-      await logMessage(sender, String(incomingMsgRaw).slice(0, 500), String(outgoingMsg).slice(0, 500));
+      await logMessage(sender, incomingMsgRaw.slice(0, 500), outgoingMsg.slice(0, 500));
       return res.status(200).send('Asked for customer name');
     }
 
-    // If customer exists but no name, and incoming message looks like a name (up to 3 words)
+    // Step 2: Save the name if it looks like a name and no name is saved yet
     if (customer && !customer.name && incomingMsg.split(' ').length <= 3 && incomingMsg.length > 1) {
       await saveCustomer({ phone: sender, name: incomingMsg });
 
@@ -100,20 +102,20 @@ app.post('/sms', async (req, res) => {
         to: sender,
       });
 
-      await logMessage(sender, String(incomingMsgRaw).slice(0, 500), String(outgoingMsg).slice(0, 500));
+      await logMessage(sender, incomingMsgRaw.slice(0, 500), outgoingMsg.slice(0, 500));
       return res.status(200).send('Saved customer name');
     }
 
-    // If booking request and customer name is known, confirm booking and notify tradie
-    if (isBookingRequest) {
-      const customerName = customer?.name || 'there';
-      const callbackTime = '4 pm';
+    // Step 3: Confirm booking if customer name is known and it's a booking
+    if (isBookingRequest && customer?.name) {
+      const customerName = customer.name;
+      const callbackTime = '4 pm'; // You could make this dynamic
 
       outgoingMsg = `Thanks for booking, ${customerName}! The sparkie will call you back at ${callbackTime}. Cheers!`;
 
       const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61418723328';
 
-      // Notify tradie with customer details and callback time
+      // Notify the tradie
       await twilioClient.messages.create({
         body: `⚡️ New booking from ${customerName} (${sender}): "${incomingMsgRaw}". Will call back at ${callbackTime}.`,
         from: process.env.TWILIO_PHONE_NUMBER,
@@ -127,11 +129,11 @@ app.post('/sms', async (req, res) => {
         to: sender,
       });
 
-      await logMessage(sender, String(incomingMsgRaw).slice(0, 500), String(outgoingMsg).slice(0, 500));
+      await logMessage(sender, incomingMsgRaw.slice(0, 500), outgoingMsg.slice(0, 500));
       return res.status(200).send('Booking handled');
     }
 
-    // Non-booking messages: Use AI with recent conversation history for context
+    // Step 4: Otherwise, fallback to AI
     const previousMessages = await getMessagesForPhone(sender, { limit: 5 });
 
     const messages = [
@@ -149,7 +151,7 @@ app.post('/sms', async (req, res) => {
     messages.push({ role: 'user', content: incomingMsg });
 
     const completion = await openai.chat.completions.create({
-    model: 'gpt-3.5-turbo',
+      model: 'gpt-3.5-turbo',
       messages,
     });
 
@@ -162,7 +164,7 @@ app.post('/sms', async (req, res) => {
       to: sender,
     });
 
-    await logMessage(sender, String(incomingMsgRaw).slice(0, 500), String(outgoingMsg).slice(0, 500));
+    await logMessage(sender, incomingMsgRaw.slice(0, 500), outgoingMsg.slice(0, 500));
     res.status(200).send('AI handled');
   } catch (err) {
     console.error('Unexpected error:', err);
