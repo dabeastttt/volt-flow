@@ -8,6 +8,7 @@ const path = require('path');
 const { logMessage, getMessagesForPhone, registerTradie } = require('./db');
 const cron = require('node-cron');
 const { getTodaysBookingsSummary } = require('./db'); // Make sure this is exported from your db file
+const { getCustomerByPhone, saveCustomer } = require('./db');
 
 const app = express();
 const port = process.env.PORT || 10000;
@@ -148,7 +149,7 @@ app.post('/sms', async (req, res) => {
     messages.push({ role: 'user', content: incomingMsg });
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4',
+    model: 'gpt-3.5-turbo',
       messages,
     });
 
@@ -181,19 +182,19 @@ app.post('/register', async (req, res) => {
 
   try {
     await registerTradie(name, business, email, phone);
-    console.log(✅ Registered: ${name} (${phone}));
+    console.log(`✅ Registered: ${name} (${phone})`);
 
     // Respond early so user isn't waiting
     res.status(200).send('Registered and activated');
 
    // Then send welcome SMS without blocking
 twilioClient.messages.create({
-  body: ⚡️ Hi ${name}, I'm your AI Apprentice. Your AI admin is now active. Messages to this number will be handled automatically.,
+  body: '⚡️Hi ${name}, I'm your AI Apprentice. Your AI admin is now active. Messages to this number will be handled automatically.',
   from: process.env.TWILIO_PHONE_NUMBER,
   to: phone,
 })
 .then(() => {
-  console.log(Welcome SMS sent to ${phone});
+  console.log('Welcome SMS sent to ${phone}');
 })
 .catch(err => {
   console.error('Error sending welcome SMS:', err);
@@ -216,33 +217,32 @@ app.get('/dashboard', async (req, res) => {
   try {
     const messages = await getMessagesForPhone(phone);
 
-    const html = 
-      <html>
-        <head>
-          <title>Volt Flow Dashboard</title>
-          <style>
-            body { font-family: sans-serif; padding: 20px; }
-            h2 { color: #007acc; }
-            table { border-collapse: collapse; width: 100%; }
-            th, td { border: 1px solid #ccc; padding: 8px; }
-            th { background: #f4f4f4; }
-          </style>
-        </head>
-        <body>
-          <h2>Message History for ${phone}</h2>
-          <table>
-            <tr><th>Time</th><th>Incoming</th><th>Reply</th></tr>
-            ${messages
-              .map(
-                (msg) =>
-                  <tr><td>${msg.created_at}</td><td>${msg.incoming}</td><td>${msg.outgoing}</td></tr>
-              )
-              .join('')}
-          </table>
-        </body>
-      </html>
-    ;
-
+const html = `
+  <html>
+    <head>
+      <title>Volt Flow Dashboard</title>
+      <style>
+        body { font-family: sans-serif; padding: 20px; }
+        h2 { color: #007acc; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 8px; }
+        th { background: #f4f4f4; }
+      </style>
+    </head>
+    <body>
+      <h2>Message History for ${phone}</h2>
+      <table>
+        <tr><th>Time</th><th>Incoming</th><th>Reply</th></tr>
+        ${messages
+          .map(
+            (msg) =>
+              `<tr><td>${msg.created_at}</td><td>${msg.incoming}</td><td>${msg.outgoing}</td></tr>`
+          )
+          .join('')}
+      </table>
+    </body>
+  </html>
+`;
     res.send(html);
   } catch (err) {
     console.error(err);
@@ -284,7 +284,7 @@ return res.status(200).json({ url: `${process.env.BASE_URL}/success` });
 });
 
 // Schedule daily summary SMS to tradie at 3 PM every day
-cron.schedule('0 15 * * *', async () => {
+cron.schedule('0 15 * * *', { timezone: 'Australia/Sydney' }, async () => {
   try {
     const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61418723328';
 
