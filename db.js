@@ -1,9 +1,10 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 
+// Initialize DB
 const db = new Database(path.resolve(__dirname, 'messages.db'));
 
-// Create tables if they don't exist
+// Create tables
 db.prepare(`
   CREATE TABLE IF NOT EXISTS tradies (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,6 +35,7 @@ db.prepare(`
   )
 `).run();
 
+
 // Log incoming and outgoing messages
 function logMessage(phone, incoming, outgoing) {
   const stmt = db.prepare(`INSERT INTO messages (phone, incoming, outgoing) VALUES (?, ?, ?)`);
@@ -41,41 +43,40 @@ function logMessage(phone, incoming, outgoing) {
   return info.lastInsertRowid;
 }
 
-// Register tradie
+// Register a tradie
 function registerTradie(name, business, email, phone) {
   const stmt = db.prepare(`INSERT INTO tradies (name, business, email, phone) VALUES (?, ?, ?, ?)`);
   const info = stmt.run(name, business, email, phone);
   return info.lastInsertRowid;
 }
 
-// Get messages by phone number (most recent first)
+// Get messages for a phone number (latest first)
 function getMessagesForPhone(phone, options = {}) {
   const limit = options.limit || 50;
   const stmt = db.prepare(`SELECT * FROM messages WHERE phone = ? ORDER BY created_at DESC LIMIT ?`);
   return stmt.all(phone, limit);
 }
 
-// Get customer by phone
+// Get a customer by phone number
 function getCustomerByPhone(phone) {
   const stmt = db.prepare(`SELECT * FROM customers WHERE phone = ?`);
   return stmt.get(phone) || null;
 }
 
-// Save or update customer name by phone
+// Save or update a customer name by phone
 function saveCustomer({ phone, name }) {
-  // Try update first
   const update = db.prepare(`UPDATE customers SET name = ? WHERE phone = ?`);
   const info = update.run(name, phone);
 
   if (info.changes === 0) {
-    // If no row updated, insert new
     const insert = db.prepare(`INSERT INTO customers (phone, name) VALUES (?, ?)`);
     return insert.run(phone, name);
   }
+
   return info;
 }
 
-//summary
+// Generate a summary of today's messages related to bookings
 function getTodaysBookingsSummary() {
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
@@ -86,8 +87,6 @@ function getTodaysBookingsSummary() {
   const startISO = startOfDay.toISOString();
   const endISO = endOfDay.toISOString();
 
-  // Use parentheses to group OR conditions correctly,
-  // and use LOWER() for case-insensitive search.
   const stmt = db.prepare(`
     SELECT phone, incoming, created_at FROM messages
     WHERE created_at BETWEEN ? AND ?
@@ -106,41 +105,20 @@ function getTodaysBookingsSummary() {
   `);
 
   const rows = stmt.all(startISO, endISO);
-
   if (!rows.length) return '';
 
   const customerNameStmt = db.prepare(`SELECT name FROM customers WHERE phone = ?`);
-
-  let summaryLines = [];
-  rows.forEach(row => {
+  const summaryLines = rows.map(row => {
     const customer = customerNameStmt.get(row.phone);
     const name = customer?.name || 'Unknown';
-
-    summaryLines.push(`- ${name} (${row.phone}): "${row.incoming.trim()}" at ${new Date(row.created_at).toLocaleTimeString()}`);
+    const time = new Date(row.created_at).toLocaleTimeString();
+    return `- ${name} (${row.phone}): "${row.incoming.trim()}" at ${time}`;
   });
 
   return summaryLines.join('\n');
 }
 
-
-  const rows = stmt.all(startISO, endISO);
-
-  if (!rows.length) return '';
-
-  // Get customer names for phones
-  const customerNameStmt = db.prepare(`SELECT name FROM customers WHERE phone = ?`);
-
-  let summaryLines = [];
-  rows.forEach(row => {
-    const customer = customerNameStmt.get(row.phone);
-    const name = customer?.name || 'Unknown';
-
-    summaryLines.push(`- ${name} (${row.phone}): "${row.incoming.trim()}" at ${new Date(row.created_at).toLocaleTimeString()}`);
-  });
-
-  return summaryLines.join('\n');
-}
-
+// Export functions
 module.exports = {
   logMessage,
   registerTradie,
@@ -149,3 +127,4 @@ module.exports = {
   saveCustomer,
   getTodaysBookingsSummary,
 };
+
