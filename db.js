@@ -35,11 +35,15 @@ db.prepare(`
   )
 `).run();
 
-
-// Log incoming and outgoing messages
+// Log incoming and outgoing messages (safely truncated)
 function logMessage(phone, incoming, outgoing) {
   const stmt = db.prepare(`INSERT INTO messages (phone, incoming, outgoing) VALUES (?, ?, ?)`);
-  const info = stmt.run(phone, incoming, outgoing);
+
+  // Truncate inputs to avoid SQLite or UI overflow issues
+  const safeIncoming = incoming ? incoming.slice(0, 1000) : null;
+  const safeOutgoing = outgoing ? outgoing.slice(0, 1000) : null;
+
+  const info = stmt.run(phone, safeIncoming, safeOutgoing);
   return info.lastInsertRowid;
 }
 
