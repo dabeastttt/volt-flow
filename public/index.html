@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>A.I Apprentice Signup</title>
+<title>TradeAssist A.I Signup</title>
 <style>
   * {
     box-sizing: border-box;
@@ -48,9 +48,9 @@ body, html {
   }
 
 .bolt-svg.glow-icon {
-  width: 60px;     /* adjust as needed */
-  height: 60px;
-  filter: drop-shadow(0 0 8px #00aaffaa);
+  width: 120px;   /* 4x bigger */
+  height: 120px;
+  filter: drop-shadow(0 0 12px #00aaffcc);
   animation: glowPulse 3s ease-in-out infinite;
 }
 
@@ -167,19 +167,37 @@ select:focus {
 <canvas id="matrixCanvas"></canvas>
 
 <main>
-  <div class="bolt-wrapper">
-    <svg class="bolt-svg glow-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Lightning Bolt">
-      <defs>
-        <linearGradient id="boltGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#00f0ff" />
-          <stop offset="100%" stop-color="#007acc" />
-        </linearGradient>
-      </defs>
-      <path fill="url(#boltGradient)" d="M28 2 L12 36 H28 L20 62 L52 26 H34 L44 2 Z"/>
-    </svg>
-  </div>
+<div class="bolt-wrapper">
+  <svg class="bolt-svg glow-icon" 
+       viewBox="0 0 64 64" 
+       xmlns="http://www.w3.org/2000/svg" 
+       role="img" 
+       aria-label="Toolbox Icon">
+    <defs>
+      <linearGradient id="toolboxGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#00f0ff" />
+        <stop offset="100%" stop-color="#007acc" />
+      </linearGradient>
+    </defs>
 
-  <h1>A.I APPRENTICE</h1>
+    <!-- Toolbox base -->
+    <rect x="8" y="22" width="48" height="28" rx="6" ry="6" fill="url(#toolboxGradient)" stroke="#004a8f" stroke-width="2"/>
+    
+    <!-- Toolbox handle -->
+    <rect x="20" y="10" width="24" height="12" rx="4" ry="4" fill="url(#toolboxGradient)" stroke="#004a8f" stroke-width="2"/>
+    
+    <!-- Handle grip -->
+    <rect x="26" y="6" width="12" height="6" rx="3" ry="3" fill="#004a8f" />
+    
+    <!-- Divider line -->
+    <line x1="20" y1="22" x2="48" y2="22" stroke="#004a8f" stroke-width="2" />
+    
+    <!-- Lock circle -->
+    <circle cx="32" cy="36" r="6" fill="#004a8f" />
+  </svg>
+</div>
+
+  <h1>TradeAssist A.I </h1>
   <h2>24/7 Receptionist — The Front Desk That Never Sleeps. </h2>
 
   <form id="signupForm" autocomplete="off" novalidate>
@@ -201,7 +219,7 @@ select:focus {
       <option value="monthly">Monthly - $30 / month</option>
     </select>
 
-    <button type="submit"> ONBOARD YOUR A.I APPRENTICE</button>
+    <button type="submit"> ONBOARD YOUR 24/7 Receptionist</button>
   </form>
 </main>
 

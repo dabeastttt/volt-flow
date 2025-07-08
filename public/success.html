@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Success — A.I Apprentice</title>
+<title>Success — Trade Assist A.I</title>
 <style>
   /* Background & body style */
   body, html {
@@ -28,40 +28,56 @@
     z-index: 0;
   }
 
-.success-box {
-  position: relative;
-  z-index: 1;
-  background: rgba(3, 25, 52, 0.85);
-  border-radius: 16px;
-  padding: 2.5rem 2rem;
-  max-width: 320px;
-  text-align: center;
-  margin: 3rem auto;
-
-box-shadow:
-  0 0 16px 4px #00aaff66,     /* soft outer spread */
-  inset 0 0 10px 2px #00aaff44; /* subtle soft inner glow */
-
+  .success-box {
+    position: relative;
+    z-index: 1;
+    background: rgba(3, 25, 52, 0.85);
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    max-width: 320px;
+    text-align: center;
+    margin: 3rem auto;
+    box-shadow:
+      0 0 16px 4px #00aaff66,
+      inset 0 0 10px 2px #00aaff44;
   }
 
-
-  /* Lightning bolt SVG with glow */
   .bolt-wrapper {
     margin-bottom: 1rem;
+    display: flex;
+    justify-content: center;
+    animation: slideToCenter 1.8s ease-out forwards;
+    transform: translateX(100%);
+    opacity: 0;
   }
 
-  .bolt-svg {
-    width: 100px;
-    height: 100px;
-    fill: url(#boltGradient);
-    filter: drop-shadow(0 0 8px #00aaffaa);
+  @keyframes slideToCenter {
+    0% {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  .bolt-svg.glow-icon {
+    width: 120px;   /* same size as index.html */
+    height: 120px;
+    filter: drop-shadow(0 0 12px #00aaffcc);
     animation: glowPulse 3s ease-in-out infinite;
-    margin: 0 auto;
+    display: block;
+    margin: 0 auto 1rem;
   }
 
   @keyframes glowPulse {
-    0%, 100% { filter: drop-shadow(0 0 8px #00aaffaa); }
-    50% { filter: drop-shadow(0 0 16px #33bbffcc); }
+    0%, 100% {
+      filter: drop-shadow(0 0 8px #00aaffaa);
+    }
+    50% {
+      filter: drop-shadow(0 0 16px #33bbffcc);
+    }
   }
 
   h1 {
@@ -101,20 +117,38 @@ box-shadow:
 <canvas id="matrixCanvas"></canvas>
 
 <div class="success-box">
-  <div class="bolt-wrapper" aria-hidden="true" title="Lightning Bolt">
-    <svg class="bolt-svg" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Lightning Bolt">
+  <div class="bolt-wrapper" aria-hidden="true" title="Toolbox Icon">
+    <svg class="bolt-svg glow-icon"
+         viewBox="0 0 64 64"
+         xmlns="http://www.w3.org/2000/svg"
+         role="img"
+         aria-label="Toolbox Icon">
       <defs>
-        <linearGradient id="boltGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient id="toolboxGradient" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stop-color="#00f0ff" />
           <stop offset="100%" stop-color="#007acc" />
         </linearGradient>
       </defs>
-      <path d="M28 2 L12 36 H28 L20 62 L52 26 H34 L44 2 Z"/>
+
+      <!-- Toolbox base -->
+      <rect x="8" y="22" width="48" height="28" rx="6" ry="6" fill="url(#toolboxGradient)" stroke="#004a8f" stroke-width="2"/>
+      
+      <!-- Toolbox handle -->
+      <rect x="20" y="10" width="24" height="12" rx="4" ry="4" fill="url(#toolboxGradient)" stroke="#004a8f" stroke-width="2"/>
+      
+      <!-- Handle grip -->
+      <rect x="26" y="6" width="12" height="6" rx="3" ry="3" fill="#004a8f" />
+      
+      <!-- Divider line -->
+      <line x1="20" y1="22" x2="48" y2="22" stroke="#004a8f" stroke-width="2" />
+      
+      <!-- Lock circle -->
+      <circle cx="32" cy="36" r="6" fill="#004a8f" />
     </svg>
   </div>
+
   <h1>Success!</h1>
-  <p>Your A.I Apprentice is now activated.
-Ready to simplify your daily tasks and save you time!</p>
+  <p>Your 24/7 Receptionist is now activated.<br>Ready to simplify your daily tasks and save you time!</p>
   <a href="/">Back to Home</a>
 </div>
 
@@ -172,3 +206,4 @@ Ready to simplify your daily tasks and save you time!</p>
 
 </body>
 </html>
+
