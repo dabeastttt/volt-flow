@@ -72,7 +72,7 @@ app.post('/sms', async (req, res) => {
     let customer = await getCustomerByPhone(sender);
 
     // Check if message looks like booking, schedule, or call
-    const isBookingRequest = /book|schedule|call/i.test(incomingMsg);
+    const isBookingRequest = /(book|booking|schedule|call|quote|quoting|job|ring|call\s?back)/i.test(incomingMsg);
 
     // If booking request but no customer or customer name, ask for their name
     if (isBookingRequest && (!customer || !customer.name)) {

@@ -75,7 +75,7 @@ function saveCustomer({ phone, name }) {
   return info;
 }
 
-// Get today's bookings summary (search messages with booking keywords)
+//summary
 function getTodaysBookingsSummary() {
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
@@ -83,19 +83,45 @@ function getTodaysBookingsSummary() {
   const endOfDay = new Date();
   endOfDay.setHours(23, 59, 59, 999);
 
-  // Format dates for SQLite (ISO 8601)
   const startISO = startOfDay.toISOString();
   const endISO = endOfDay.toISOString();
 
-  // Select messages today that mention booking/schedule/call (case insensitive)
+  // Use parentheses to group OR conditions correctly,
+  // and use LOWER() for case-insensitive search.
   const stmt = db.prepare(`
     SELECT phone, incoming, created_at FROM messages
     WHERE created_at BETWEEN ? AND ?
-      AND incoming LIKE '%book%'
-      OR incoming LIKE '%schedule%'
-      OR incoming LIKE '%call%'
+      AND (
+        LOWER(incoming) LIKE '%book%'
+        OR LOWER(incoming) LIKE '%booking%'
+        OR LOWER(incoming) LIKE '%schedule%'
+        OR LOWER(incoming) LIKE '%call%'
+        OR LOWER(incoming) LIKE '%quote%'
+        OR LOWER(incoming) LIKE '%job%'
+        OR LOWER(incoming) LIKE '%call back%'
+        OR LOWER(incoming) LIKE '%quoting%'
+        OR LOWER(incoming) LIKE '%ring%'
+      )
     ORDER BY created_at ASC
   `);
+
+  const rows = stmt.all(startISO, endISO);
+
+  if (!rows.length) return '';
+
+  const customerNameStmt = db.prepare(`SELECT name FROM customers WHERE phone = ?`);
+
+  let summaryLines = [];
+  rows.forEach(row => {
+    const customer = customerNameStmt.get(row.phone);
+    const name = customer?.name || 'Unknown';
+
+    summaryLines.push(`- ${name} (${row.phone}): "${row.incoming.trim()}" at ${new Date(row.created_at).toLocaleTimeString()}`);
+  });
+
+  return summaryLines.join('\n');
+}
+
 
   const rows = stmt.all(startISO, endISO);
 
