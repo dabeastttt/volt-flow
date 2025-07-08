@@ -284,29 +284,35 @@ return res.status(200).json({ url: `${process.env.BASE_URL}/success` });
 });
 
 // Schedule daily summary SMS to tradie at 3 PM every day
-cron.schedule('0 15 * * *', { timezone: 'Australia/Sydney' }, async () => {
-  try {
-    const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61418723328';
+cron.schedule(
+  '0 15 * * *',
+  async () => {
+    try {
+      const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61418723328';
 
-    // Get today's bookings/calls/quotes summary text
-    const summary = await getTodaysBookingsSummary();
+      // Get today's bookings/calls/quotes summary text
+      const summary = await getTodaysBookingsSummary();
 
-    if (!summary || summary.trim().length === 0) {
-      console.log('No bookings or calls today, skipping summary SMS.');
-      return;
+      if (!summary || summary.trim().length === 0) {
+        console.log('No bookings or calls today, skipping summary SMS.');
+        return;
+      }
+
+      await twilioClient.messages.create({
+        body: `⚡️ Daily summary:\n${summary}`,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: tradieNumber,
+      });
+
+      console.log('Sent daily summary SMS to tradie.');
+    } catch (err) {
+      console.error('Error sending daily summary SMS:', err);
     }
-
-    await twilioClient.messages.create({
-      body: `⚡️ Daily summary:\n${summary}`,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      to: tradieNumber,
-    });
-
-    console.log('Sent daily summary SMS to tradie.');
-  } catch (err) {
-    console.error('Error sending daily summary SMS:', err);
+  },
+  {
+    timezone: 'Australia/Sydney',
   }
-});
+);
 
 app.listen(port, () => {
   console.log(`⚡️ AI Apprentice listening on port ${port}`);
