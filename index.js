@@ -189,7 +189,7 @@ app.post('/register', async (req, res) => {
 
    // Then send welcome SMS without blocking
 twilioClient.messages.create({
-  body: '⚡️Hi ${name}, I'm your AI Apprentice. Your AI admin is now active. Messages to this number will be handled automatically.',
+  body: '⚡️Hi ${name}, I am your AI Apprentice. Your AI admin is now active. Messages to this number will be handled automatically.',
   from: process.env.TWILIO_PHONE_NUMBER,
   to: phone,
 })
