@@ -10,15 +10,16 @@
     box-sizing: border-box;
   }
 
-  body, html {
-    margin: 0;
-    padding: 0;
-    min-height: 100%;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #001426;
-    overflow-x: hidden;
-    color: #d0e7ff;
-  }
+body, html {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #001426;
+  color: #d0e7ff;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
 
   #matrixCanvas {
     position: fixed;
@@ -183,7 +184,7 @@ select:focus {
 
   <form id="signupForm" autocomplete="off" novalidate>
     <label for="name">Full Name</label>
-    <input type="text" id="name" name="name" placeholder="NAME" required />
+    <input type="text" id="name" name="name" placeholder="Name" required />
 
     <label for="business">Business Name</label>
     <input type="text" id="business" name="business" placeholder="Business Name" required />
@@ -200,7 +201,7 @@ select:focus {
       <option value="monthly">Monthly - $30 / month</option>
     </select>
 
-    <button type="submit"> Unlock Your A.I Apprentice</button>
+    <button type="submit"> ONBOARD YOUR A.I APPRENTICE</button>
   </form>
 </main>
 
@@ -226,7 +227,7 @@ select:focus {
       drops[i] = 1;
     }
   }
-
+   
   resize();
   window.addEventListener('resize', resize);
 
@@ -295,6 +296,4 @@ select:focus {
 </script>
 
 </body>
-</html>
-
-
+</html>  
