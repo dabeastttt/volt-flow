@@ -35,6 +35,9 @@ db.prepare(`
   )
 `).run();
 
+// Insert a dummy row into customers to force DB file creation
+db.prepare(`INSERT OR IGNORE INTO customers (phone, name) VALUES (?, ?)`).run('+test', 'Init Check');
+
 // Log incoming and outgoing messages (safely truncated)
 function logMessage(phone, incoming, outgoing) {
   const stmt = db.prepare(`INSERT INTO messages (phone, incoming, outgoing) VALUES (?, ?, ?)`);
