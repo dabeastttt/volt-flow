@@ -74,7 +74,7 @@ app.post('/sms', async (req, res) => {
     const isCallback = /(call\s?back|ring|talk|speak)/i.test(incomingMsg);
     const isBookingRequest = (isBooking || isQuote || isCallback);
 
-    const callbackTime = '4 pm'; // Change this if needed
+    const callbackTime = '4 pm';
     const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61418723328';
 
     // 👇 Save name + confirm booking immediately
@@ -82,15 +82,14 @@ app.post('/sms', async (req, res) => {
       await saveCustomer({ phone: sender, name: incomingMsg });
       const customerName = incomingMsg;
 
-      // Send booking confirmation to customer
       outgoingMsg = `Thanks for booking, ${customerName}! The sparkie will call you back at ${callbackTime}. Cheers!`;
+
       await twilioClient.messages.create({
         body: outgoingMsg,
         from: process.env.TWILIO_PHONE_NUMBER,
         to: sender,
       });
 
-      // Notify tradie
       await twilioClient.messages.create({
         body: `⚡️ New booking from ${customerName} (${sender}): "${incomingMsgRaw}". Will call back at ${callbackTime}.`,
         from: process.env.TWILIO_PHONE_NUMBER,
@@ -137,22 +136,50 @@ app.post('/sms', async (req, res) => {
       return res.status(200).send('Booking handled');
     }
 
-    // 👇 AI fallback
+    // 👇 AI fallback with few-shot examples
     const previousMessages = await getMessagesForPhone(sender, { limit: 5 });
 
     const messages = [
       {
         role: 'system',
-        content: 'You are a casual, friendly Aussie sparky assistant. Keep replies short and helpful. Suggest a quote, job booking or call back.',
+        content: 'You are a casual, friendly Aussie sparky assistant. Keep replies short and helpful. Suggest a quote, job booking or callback.',
       },
+
+      // ✅ FEW-SHOT EXAMPLES
+      {
+        role: 'user',
+        content: 'Hi mate, I need a fan installed.',
+      },
+      {
+        role: 'assistant',
+        content: 'No worries! I can get that booked in. Can you send through your name and suburb?',
+      },
+      {
+        role: 'user',
+        content: 'What’s the price for downlights?',
+      },
+      {
+        role: 'assistant',
+        content: 'Prices vary a bit, but I can sort a quick quote. Mind letting me know how many lights and where you’re based?',
+      },
+      {
+        role: 'user',
+        content: 'Can I get someone to come look at a faulty switch?',
+      },
+      {
+        role: 'assistant',
+        content: 'Yep, we can help with that. Want me to lock in a callback? Just shoot over your name + suburb.',
+      },
+
+      // 👇 Previous messages (if any)
+      ...previousMessages.flatMap(msg => [
+        { role: 'user', content: msg.incoming },
+        { role: 'assistant', content: msg.outgoing },
+      ]),
+
+      // 👇 Current incoming message
+      { role: 'user', content: incomingMsg },
     ];
-
-    for (const msg of previousMessages) {
-      messages.push({ role: 'user', content: msg.incoming });
-      messages.push({ role: 'assistant', content: msg.outgoing });
-    }
-
-    messages.push({ role: 'user', content: incomingMsg });
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
