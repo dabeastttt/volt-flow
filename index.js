@@ -6,6 +6,8 @@ const twilio = require('twilio');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 const { logMessage, getMessagesForPhone, registerTradie } = require('./db');
+const cron = require('node-cron');
+const { getTodaysBookingsSummary } = require('./db'); // Make sure this is exported from your db file
 
 const app = express();
 const port = process.env.PORT || 10000;
@@ -54,9 +56,10 @@ const limiter = rateLimit({
 });
 app.use('/sms', limiter);
 
-// 📩 SMS Handler
+//SMS HAndler
 app.post('/sms', async (req, res) => {
-  const incomingMsg = req.body.Body || '';
+  const incomingMsgRaw = req.body.Body || '';
+  const incomingMsg = incomingMsgRaw.trim();
   const senderRaw = req.body.From || '';
   const sender = formatPhoneNumber(senderRaw);
   let outgoingMsg = '';
@@ -64,17 +67,15 @@ app.post('/sms', async (req, res) => {
   console.log(`SMS from ${sender}: ${incomingMsg}`);
 
   try {
-    // Default tradie number for now — single bot setup
-    const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61418723328';
+    // Check if you already know this customer (returns null or { phone, name })
+    let customer = await getCustomerByPhone(sender);
 
-    if (/book|schedule|call/i.test(incomingMsg)) {
-      outgoingMsg = `Thanks for booking! The sparkie will be in touch soon. Cheers!`;
+    // Check if message looks like booking, schedule, or call
+    const isBookingRequest = /book|schedule|call/i.test(incomingMsg);
 
-      await twilioClient.messages.create({
-        body: `⚡️ New booking request from ${sender}: "${incomingMsg}"`,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: tradieNumber,
-      });
+    // If booking request but no customer or customer name, ask for their name
+    if (isBookingRequest && (!customer || !customer.name)) {
+      outgoingMsg = "Hi! To help with your booking, could you please reply with your full name?";
 
       await twilioClient.messages.create({
         body: outgoingMsg,
@@ -82,21 +83,73 @@ app.post('/sms', async (req, res) => {
         to: sender,
       });
 
-      await logMessage(sender, incomingMsg, outgoingMsg);
+      await logMessage(sender, incomingMsgRaw, outgoingMsg);
+      return res.status(200).send('Asked for customer name');
+    }
+
+    // If customer exists but no name, and incoming message looks like a name (up to 3 words)
+    if (customer && !customer.name && incomingMsg.split(' ').length <= 3 && incomingMsg.length > 1) {
+      await saveCustomer({ phone: sender, name: incomingMsg });
+
+      outgoingMsg = `Thanks, ${incomingMsg}! Your booking request is noted. We'll be in touch shortly.`;
+
+      await twilioClient.messages.create({
+        body: outgoingMsg,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: sender,
+      });
+
+      await logMessage(sender, incomingMsgRaw, outgoingMsg);
+      return res.status(200).send('Saved customer name');
+    }
+
+    // If booking request and customer name is known, confirm booking and notify tradie
+    if (isBookingRequest) {
+      const customerName = customer?.name || 'there';
+      const callbackTime = '4 pm';
+
+      outgoingMsg = `Thanks for booking, ${customerName}! The sparkie will call you back at ${callbackTime}. Cheers!`;
+
+      const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61418723328';
+
+      // Notify tradie with customer details and callback time
+      await twilioClient.messages.create({
+        body: `⚡️ New booking from ${customerName} (${sender}): "${incomingMsgRaw}". Will call back at ${callbackTime}.`,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: tradieNumber,
+      });
+
+      // Confirm to customer
+      await twilioClient.messages.create({
+        body: outgoingMsg,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: sender,
+      });
+
+      await logMessage(sender, incomingMsgRaw, outgoingMsg);
       return res.status(200).send('Booking handled');
     }
 
-    // AI Reply
+    // Non-booking messages: Use AI with recent conversation history for context
+    const previousMessages = await getMessagesForPhone(sender, { limit: 5 });
+
+    const messages = [
+      {
+        role: 'system',
+        content: 'You are a casual, friendly Aussie sparky assistant. Keep replies short and helpful. Suggest a quote, job booking or call back.',
+      },
+    ];
+
+    for (const msg of previousMessages) {
+      messages.push({ role: 'user', content: msg.incoming });
+      messages.push({ role: 'assistant', content: msg.outgoing });
+    }
+
+    messages.push({ role: 'user', content: incomingMsg });
+
     const completion = await openai.chat.completions.create({
       model: 'gpt-4',
-      messages: [
-        {
-          role: 'system',
-          content:
-            'You are a casual, friendly Aussie sparky assistant. Keep replies short and helpful. Suggest a quote or job booking.',
-        },
-        { role: 'user', content: incomingMsg },
-      ],
+      messages,
     });
 
     outgoingMsg = completion.choices[0].message.content;
@@ -108,7 +161,7 @@ app.post('/sms', async (req, res) => {
       to: sender,
     });
 
-    await logMessage(sender, incomingMsg, outgoingMsg);
+    await logMessage(sender, incomingMsgRaw, outgoingMsg);
     res.status(200).send('AI handled');
   } catch (err) {
     console.error('Unexpected error:', err);
@@ -128,22 +181,23 @@ app.post('/register', async (req, res) => {
 
   try {
     await registerTradie(name, business, email, phone);
-    console.log(`✅ Registered: ${name} (${phone})`);
+    console.log(✅ Registered: ${name} (${phone}));
 
     // Respond early so user isn't waiting
     res.status(200).send('Registered and activated');
 
-    // Then send welcome SMS without blocking
-    twilioClient.messages.create({
-      body: `⚡️ Welcome to Volt Flow, ${name}! Your AI admin is now active. Messages to this number will be handled automatically.`,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      to: phone,
-    }).then(() => {
-      console.log(`Welcome SMS sent to ${phone}`);
-    }).catch(err => {
-      console.error('Error sending welcome SMS:', err);
-    });
-
+   // Then send welcome SMS without blocking
+twilioClient.messages.create({
+  body: ⚡️ Hi ${name}, I'm your AI Apprentice. Your AI admin is now active. Messages to this number will be handled automatically.,
+  from: process.env.TWILIO_PHONE_NUMBER,
+  to: phone,
+})
+.then(() => {
+  console.log(Welcome SMS sent to ${phone});
+})
+.catch(err => {
+  console.error('Error sending welcome SMS:', err);
+});
  } catch (err) {
     console.error('DB error:', err);
     res.status(500).send('Something went wrong');
@@ -162,7 +216,7 @@ app.get('/dashboard', async (req, res) => {
   try {
     const messages = await getMessagesForPhone(phone);
 
-    const html = `
+    const html = 
       <html>
         <head>
           <title>Volt Flow Dashboard</title>
@@ -181,20 +235,20 @@ app.get('/dashboard', async (req, res) => {
             ${messages
               .map(
                 (msg) =>
-                  `<tr><td>${msg.created_at}</td><td>${msg.incoming}</td><td>${msg.outgoing}</td></tr>`
+                  <tr><td>${msg.created_at}</td><td>${msg.incoming}</td><td>${msg.outgoing}</td></tr>
               )
               .join('')}
           </table>
         </body>
       </html>
-    `;
+    ;
 
     res.send(html);
   } catch (err) {
     console.error(err);
     res.status(500).send('Could not load dashboard');
   }
-});
+});  
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
@@ -228,8 +282,34 @@ return res.status(200).json({ url: `${process.env.BASE_URL}/success` });
   }
    */
 });
+
+// Schedule daily summary SMS to tradie at 3 PM every day
+cron.schedule('0 15 * * *', async () => {
+  try {
+    const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61418723328';
+
+    // Get today's bookings/calls/quotes summary text
+    const summary = await getTodaysBookingsSummary();
+
+    if (!summary || summary.trim().length === 0) {
+      console.log('No bookings or calls today, skipping summary SMS.');
+      return;
+    }
+
+    await twilioClient.messages.create({
+      body: `⚡️ Daily summary:\n${summary}`,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to: tradieNumber,
+    });
+
+    console.log('Sent daily summary SMS to tradie.');
+  } catch (err) {
+    console.error('Error sending daily summary SMS:', err);
+  }
+});
+
 app.listen(port, () => {
-  console.log(`⚡️ Volt Flow AI listening on port ${port}`);
+  console.log(`⚡️ AI Apprentice listening on port ${port}`);
 });
 
 
