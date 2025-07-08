@@ -84,7 +84,7 @@ app.post('/sms', async (req, res) => {
         to: sender,
       });
 
-      await logMessage(sender, incomingMsgRaw, outgoingMsg);
+      await logMessage(sender, String(incomingMsgRaw).slice(0, 500), String(outgoingMsg).slice(0, 500));
       return res.status(200).send('Asked for customer name');
     }
 
@@ -100,7 +100,7 @@ app.post('/sms', async (req, res) => {
         to: sender,
       });
 
-      await logMessage(sender, incomingMsgRaw, outgoingMsg);
+      await logMessage(sender, String(incomingMsgRaw).slice(0, 500), String(outgoingMsg).slice(0, 500));
       return res.status(200).send('Saved customer name');
     }
 
@@ -127,7 +127,7 @@ app.post('/sms', async (req, res) => {
         to: sender,
       });
 
-      await logMessage(sender, incomingMsgRaw, outgoingMsg);
+      await logMessage(sender, String(incomingMsgRaw).slice(0, 500), String(outgoingMsg).slice(0, 500));
       return res.status(200).send('Booking handled');
     }
 
@@ -162,7 +162,7 @@ app.post('/sms', async (req, res) => {
       to: sender,
     });
 
-    await logMessage(sender, incomingMsgRaw, outgoingMsg);
+    await logMessage(sender, String(incomingMsgRaw).slice(0, 500), String(outgoingMsg).slice(0, 500));
     res.status(200).send('AI handled');
   } catch (err) {
     console.error('Unexpected error:', err);
