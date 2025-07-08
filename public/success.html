@@ -33,12 +33,17 @@
   z-index: 1;
   background: rgba(3, 25, 52, 0.85);
   border-radius: 16px;
-  padding: 2.5rem 2rem;   /* slightly less padding */
-  box-shadow: 0 0 20px #004aadcc;
-  max-width: 320px;       /* narrower width */
+  padding: 2.5rem 2rem;
+  max-width: 320px;
   text-align: center;
-  margin: 3rem auto;      /* center the box */
-}
+  margin: 3rem auto;
+
+box-shadow:
+  0 0 16px 4px #00aaff66,     /* soft outer spread */
+  inset 0 0 10px 2px #00aaff44; /* subtle soft inner glow */
+
+  }
+
 
   /* Lightning bolt SVG with glow */
   .bolt-wrapper {
@@ -107,8 +112,9 @@
       <path d="M28 2 L12 36 H28 L20 62 L52 26 H34 L44 2 Z"/>
     </svg>
   </div>
-  <h1>You're all set!</h1>
-  <p>Thanks for registering. Your A.I Apprentice is now live.</p>
+  <h1>Success!</h1>
+  <p>Your A.I Apprentice is now activated.
+Ready and live to simplify your daily tasks and save you time.</p>
   <a href="/">Back to Home</a>
 </div>
 
