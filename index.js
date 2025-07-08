@@ -250,6 +250,42 @@ const html = `
   }
 });  
 
+//voice
+app.post('/voice', async (req, res) => {
+  const callerRaw = req.body.From || '';
+  const caller = formatPhoneNumber(callerRaw);
+
+  console.log(`📞 Missed call from: ${caller}`);
+
+  const customerMsg = `Hey! Sorry we missed your call. You can book a job, get a quote, or ask a question by replying here. Cheers!`;
+
+  const tradieMsg = `⚠️ Missed call from ${caller}. Auto-reply sent.`;
+
+  try {
+    // Auto-text the customer
+    await twilioClient.messages.create({
+      body: customerMsg,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to: caller,
+    });
+
+    // Notify the tradie
+    const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61418723328';
+    await twilioClient.messages.create({
+      body: tradieMsg,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to: tradieNumber,
+    });
+
+    // Respond to Twilio to end the call (no ringing/voicemail)
+    res.type('text/xml');
+    res.send(`<Response></Response>`);
+  } catch (err) {
+    console.error('❌ Error handling voice call:', err);
+    res.status(500).send('Failed');
+  }
+});
+
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 app.post('/create-checkout-session', async (req, res) => {
