@@ -5,10 +5,15 @@ const { OpenAI } = require('openai');
 const twilio = require('twilio');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
-const { logMessage, getMessagesForPhone, registerTradie } = require('./db');
+const {
+  logMessage,
+  getMessagesForPhone,
+  registerTradie,
+  getTodaysBookingsSummary,
+  getCustomerByPhone,
+  saveCustomer,
+} = require('./db');
 const cron = require('node-cron');
-const { getTodaysBookingsSummary } = require('./db'); // Make sure this is exported from your db file
-const { getCustomerByPhone, saveCustomer } = require('./db');
 
 const app = express();
 const port = process.env.PORT || 10000;
@@ -44,7 +49,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/success', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'success.html'));
 });
-
 
 // Rate limiter: max 5 requests per minute per phone number or IP
 const limiter = rateLimit({
@@ -220,24 +224,23 @@ app.post('/register', async (req, res) => {
     // Respond early so user isn't waiting
     res.status(200).send('Registered and activated');
 
-   // Then send welcome SMS without blocking
-twilioClient.messages.create({
-  body: `⚡️Hi ${name}, I am your AI Apprentice. Your AI admin is now active. Messages to this number will be handled automatically.`,
-  from: process.env.TWILIO_PHONE_NUMBER,
-  to: phone,
-})
-.then(() => {
-  console.log(`Welcome SMS sent to ${phone}`);
-})
-.catch(err => {
-  console.error('Error sending welcome SMS:', err);
-});
- } catch (err) {
+    // Then send welcome SMS without blocking
+    twilioClient.messages.create({
+      body: `⚡️Hi ${name}, I am your AI Apprentice. Your AI admin is now active. Messages to this number will be handled automatically.`,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to: phone,
+    })
+    .then(() => {
+      console.log(`Welcome SMS sent to ${phone}`);
+    })
+    .catch(err => {
+      console.error('Error sending welcome SMS:', err);
+    });
+  } catch (err) {
     console.error('DB error:', err);
     res.status(500).send('Something went wrong');
   }
 });
-
 
 // 📊 View dashboard (basic HTML)
 app.get('/dashboard', async (req, res) => {
@@ -250,38 +253,38 @@ app.get('/dashboard', async (req, res) => {
   try {
     const messages = await getMessagesForPhone(phone);
 
-const html = `
-  <html>
-    <head>
-      <title>Volt Flow Dashboard</title>
-      <style>
-        body { font-family: sans-serif; padding: 20px; }
-        h2 { color: #007acc; }
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ccc; padding: 8px; }
-        th { background: #f4f4f4; }
-      </style>
-    </head>
-    <body>
-      <h2>Message History for ${phone}</h2>
-      <table>
-        <tr><th>Time</th><th>Incoming</th><th>Reply</th></tr>
-        ${messages
-          .map(
-            (msg) =>
-              `<tr><td>${msg.created_at}</td><td>${msg.incoming}</td><td>${msg.outgoing}</td></tr>`
-          )
-          .join('')}
-      </table>
-    </body>
-  </html>
-`;
+    const html = `
+      <html>
+        <head>
+          <title>Volt Flow Dashboard</title>
+          <style>
+            body { font-family: sans-serif; padding: 20px; }
+            h2 { color: #007acc; }
+            table { border-collapse: collapse; width: 100%; }
+            th, td { border: 1px solid #ccc; padding: 8px; }
+            th { background: #f4f4f4; }
+          </style>
+        </head>
+        <body>
+          <h2>Message History for ${phone}</h2>
+          <table>
+            <tr><th>Time</th><th>Incoming</th><th>Reply</th></tr>
+            ${messages
+              .map(
+                (msg) =>
+                  `<tr><td>${msg.created_at}</td><td>${msg.incoming}</td><td>${msg.outgoing}</td></tr>`
+              )
+              .join('')}
+          </table>
+        </body>
+      </html>
+    `;
     res.send(html);
   } catch (err) {
     console.error(err);
     res.status(500).send('Could not load dashboard');
   }
-});  
+});
 
 //voice
 app.post('/voice', async (req, res) => {
@@ -322,34 +325,9 @@ app.post('/voice', async (req, res) => {
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 app.post('/create-checkout-session', async (req, res) => {
-return res.status(200).json({ url: `${process.env.BASE_URL}/success` });
- 
-/* const { plan } = req.body; // expect "weekly" or "monthly"
-  
-  let priceId;
-  if (plan === 'weekly') {
-    priceId = process.env.STRIPE_WEEKLY_PRICE_ID;
-  } else if (plan === 'monthly') {
-    priceId = process.env.STRIPE_MONTHLY_PRICE_ID;
-  } else {
-    return res.status(400).json({ error: 'Invalid plan selected' });
-  }
+  return res.status(200).json({ url: `${process.env.BASE_URL}/success` });
 
-  try {
-    const session = await stripe.checkout.sessions.create({
-      mode: 'subscription',
-      payment_method_types: ['card'],
-      line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${process.env.BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.BASE_URL}/cancel`,
-    });
-
-    res.json({ url: session.url });
-  } catch (err) {
-    console.error('Stripe checkout session error:', err);
-    res.status(500).json({ error: 'Failed to create checkout session' });
-  }
-   */
+  /* Stripe logic commented out */
 });
 
 // Schedule daily summary SMS to tradie at 3 PM every day
