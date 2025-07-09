@@ -90,26 +90,15 @@ async function getTodaysBookingsSummary() {
     'ring',
   ];
 
-  // Build filter - supabase doesn't have OR filter directly in JS,
-  // so we can do a raw SQL query here for better control:
-  const keywordFilters = keywords
-    .map((word) => `LOWER(incoming) LIKE '%${word}%'`)
-    .join(' OR ');
-
-  const query = `
-    SELECT phone, incoming, created_at FROM messages
-    WHERE created_at BETWEEN $1 AND $2
-    AND (${keywordFilters})
-    ORDER BY created_at ASC
-  `;
-
-  const { data: rows, error } = await supabase.rpc('custom_sql', {
-    sql: query,
-    params: [startOfDay.toISOString(), endOfDay.toISOString()],
-  });
+  const { data: rows, error } = await supabase
+    .from('messages')
+    .select('phone, incoming, created_at')
+    .gte('created_at', startOfDay.toISOString())
+    .lte('created_at', endOfDay.toISOString())
+    .or(keywords.map((k) => `incoming.ilike.%${k}%`).join(','))
+    .order('created_at', { ascending: true });
 
   if (error) {
-    // Fallback: you may implement the search in multiple queries or adjust your schema
     console.error('Error fetching bookings summary:', error);
     return '';
   }
