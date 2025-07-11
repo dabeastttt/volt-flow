@@ -86,7 +86,7 @@ app.post('/sms', async (req, res) => {
       await saveCustomer({ phone: sender, name: incomingMsg });
       const customerName = incomingMsg;
 
-      outgoingMsg = Thanks for booking, ${customerName}! The sparkie will call you back at ${callbackTime}. Cheers!;
+      outgoingMsg = `Thanks for booking, ${customerName}! The sparkie will call you back at ${callbackTime}. Cheers!`;
 
       await twilioClient.messages.create({
         body: outgoingMsg,
@@ -95,7 +95,7 @@ app.post('/sms', async (req, res) => {
       });
 
       await twilioClient.messages.create({
-        body: ⚡️ New request from ${customerName} (${sender}): "${incomingMsgRaw}". Will call back at ${callbackTime}.,
+        body: `⚡️ New request from ${customerName} (${sender}): "${incomingMsgRaw}". Will call back at ${callbackTime}.`,
         from: process.env.TWILIO_PHONE_NUMBER,
         to: tradieNumber,
       });
@@ -122,7 +122,7 @@ app.post('/sms', async (req, res) => {
     if (isBookingRequest && customer?.name) {
       const customerName = customer.name;
 
-      outgoingMsg = Thanks for your request, ${customerName}! The sparkie will call you back at ${callbackTime}. Cheers!;
+      outgoingMsg = `Thanks for your request, ${customerName}! The sparkie will call you back at ${callbackTime}. Cheers!`;
 
       await twilioClient.messages.create({
         body: outgoingMsg,
@@ -131,7 +131,7 @@ app.post('/sms', async (req, res) => {
       });
 
       await twilioClient.messages.create({
-        body: ⚡️ New request from ${customerName} (${sender}): "${incomingMsgRaw}". Will call back at ${callbackTime}.,
+        body: `⚡️ New request from ${customerName} (${sender}): "${incomingMsgRaw}". Will call back at ${callbackTime}.`,
         from: process.env.TWILIO_PHONE_NUMBER,
         to: tradieNumber,
       });
@@ -191,7 +191,7 @@ app.post('/sms', async (req, res) => {
     });
 
     outgoingMsg = completion.choices[0].message.content;
-    console.log(AI reply: ${outgoingMsg});
+    console.log(`AI reply: ${outgoingMsg}`);
 
     await twilioClient.messages.create({
       body: outgoingMsg,
@@ -219,7 +219,7 @@ app.post('/register', async (req, res) => {
 
   try {
     await registerTradie(name, business, email, phone);
-    console.log(✅ Registered: ${name} (${phone}));
+    console.log(`✅ Registered: ${name} (${phone})`);
 
     res.status(200).send('Registered and activated');
 
@@ -228,26 +228,26 @@ app.post('/register', async (req, res) => {
 
     // Step 1: Welcome
     await twilioClient.messages.create({
-      body: ⚡️Hi ${name}, I am your very own assistant that never sleeps. Your AI admin is now active.,
+      body: `⚡️Hi ${name}, I am your very own assistant that never sleeps. Your AI admin is now active.`,
       from: assistantNumber,
       to: phone,
     });
 
     // Step 2: Forwarding instructions
     await twilioClient.messages.create({
-      body: 📲 Please forward your main mobile number to this AI number (${assistantNumber}) so we can handle missed calls for you. On iPhone/Android, just go to Phone > Settings > Call Forwarding.,
+      body: `📲 Please forward your main mobile number to this AI number (${assistantNumber}) so we can handle missed calls for you. On iPhone/Android, just go to Phone > Settings > Call Forwarding.`,
       from: assistantNumber,
       to: phone,
     });
 
     // Step 3: Optional tip
     await twilioClient.messages.create({
-      body: Tip: Set forwarding to "When Busy" or "When Unanswered" so we only step in when you're away. You're all set ⚡️,
+      body: `Tip: Set forwarding to "When Busy" or "When Unanswered" so we only step in when you're away. You're all set ⚡️`,
       from: assistantNumber,
       to: phone,
     });
 
-    console.log(✅ Onboarding SMS sent to ${phone});
+     console.log(`✅ Onboarding SMS sent to ${phone}`);
   } catch (err) {
     console.error('DB error:', err);
     res.status(500).send('Something went wrong');
@@ -265,56 +265,26 @@ app.get('/dashboard', async (req, res) => {
   try {
     const messages = await getMessagesForPhone(phone);
 
-    const html = 
-      <html>
-        <head>
-          <title>Volt Flow Dashboard</title>
-          <style>
-            body { font-family: sans-serif; padding: 20px; }
-            h2 { color: #007acc; }
-            table { border-collapse: collapse; width: 100%; }
-            th, td { border: 1px solid #ccc; padding: 8px; }
-            th { background: #f4f4f4; }
-          </style>
-        </head>
-        <body>
-          <h2>Message History for ${phone}</h2>
-          <table>
-            <tr><th>Time</th><th>Incoming</th><th>Reply</th></tr>
-            ${messages
-              .map(
-                (msg) =>
-                  <tr><td>${msg.created_at}</td><td>${msg.incoming}</td><td>${msg.outgoing}</td></tr>
-              )
-              .join('')}
-          </table>
-        </body>
-      </html>
-    ;
-    res.send(html);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Could not load dashboard');
-  }
-});
-
-app.post('/voice', (req, res) => {
-  const twiml = new twilio.twiml.VoiceResponse();
-
-  twiml.say("Hi there! The tradie is currently unavailable. Please leave a message after the beep and we'll get back to you shortly.");
-
-  twiml.record({
-    maxLength: 60,
-    playBeep: true,
-    transcribe: true,
-    transcribeCallback: 'https://volt-flow.onrender.com/voicemail',
-    action: 'https://volt-flow.onrender.com/voicemail',
-  });
-
-  twiml.hangup();
-
-  res.type('text/xml').send(twiml.toString());
-});
+    const html = `
+  <html>
+    <head>
+      <title>TradeAssist A.I Dashboard</title>
+      ...
+    </head>
+    <body>
+      <h2>Message History for ${phone}</h2>
+      <table>
+        <tr><th>Time</th><th>Incoming</th><th>Reply</th></tr>
+        ${messages
+          .map(
+            (msg) =>
+              `<tr><td>${msg.created_at}</td><td>${msg.incoming}</td><td>${msg.outgoing}</td></tr>`
+          )
+          .join('')}
+      </table>
+    </body>
+  </html>
+`;
 
 app.post('/call-status', async (req, res) => {
   const callStatus = req.body.CallStatus; // 'no-answer', 'busy', 'completed', etc.
@@ -424,7 +394,7 @@ app.post('/voicemail', async (req, res) => {
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 app.post('/create-checkout-session', async (req, res) => {
-  return res.status(200).json({ url: ${process.env.BASE_URL}/success });
+  return res.status(200).json({ url: `${process.env.BASE_URL}/success` });
 
   /* Stripe logic commented out */
 });
@@ -445,7 +415,7 @@ cron.schedule(
       }
 
       await twilioClient.messages.create({
-        body: ⚡️ Daily summary:\n${summary},
+        body: `⚡️ Daily summary:\n${summary}`,
         from: process.env.TWILIO_PHONE_NUMBER,
         to: tradieNumber,
       });
@@ -461,6 +431,6 @@ cron.schedule(
 );
 
 app.listen(port, () => {
-  console.log(⚡️ AI Apprentice listening on port ${port});
+  console.log(`⚡️ AI Apprentice listening on port ${port}`);
 }); 
 
