@@ -68,7 +68,7 @@ app.post('/sms', async (req, res) => {
   const sender = formatPhoneNumber(senderRaw);
   let outgoingMsg = '';
 
-  console.log(`SMS from ${sender}: ${incomingMsg}`);
+  console.log(SMS from ${sender}: ${incomingMsg});
 
   try {
     const customer = await getCustomerByPhone(sender);
@@ -86,7 +86,7 @@ app.post('/sms', async (req, res) => {
       await saveCustomer({ phone: sender, name: incomingMsg });
       const customerName = incomingMsg;
 
-      outgoingMsg = `Thanks for booking, ${customerName}! The sparkie will call you back at ${callbackTime}. Cheers!`;
+      outgoingMsg = Thanks for booking, ${customerName}! The sparkie will call you back at ${callbackTime}. Cheers!;
 
       await twilioClient.messages.create({
         body: outgoingMsg,
@@ -95,7 +95,7 @@ app.post('/sms', async (req, res) => {
       });
 
       await twilioClient.messages.create({
-        body: `⚡️ New booking from ${customerName} (${sender}): "${incomingMsgRaw}". Will call back at ${callbackTime}.`,
+        body: ⚡️ New request from ${customerName} (${sender}): "${incomingMsgRaw}". Will call back at ${callbackTime}.,
         from: process.env.TWILIO_PHONE_NUMBER,
         to: tradieNumber,
       });
@@ -122,7 +122,7 @@ app.post('/sms', async (req, res) => {
     if (isBookingRequest && customer?.name) {
       const customerName = customer.name;
 
-      outgoingMsg = `Thanks for booking, ${customerName}! The sparkie will call you back at ${callbackTime}. Cheers!`;
+      outgoingMsg = Thanks for your request, ${customerName}! The sparkie will call you back at ${callbackTime}. Cheers!;
 
       await twilioClient.messages.create({
         body: outgoingMsg,
@@ -131,7 +131,7 @@ app.post('/sms', async (req, res) => {
       });
 
       await twilioClient.messages.create({
-        body: `⚡️ New booking from ${customerName} (${sender}): "${incomingMsgRaw}". Will call back at ${callbackTime}.`,
+        body: ⚡️ New request from ${customerName} (${sender}): "${incomingMsgRaw}". Will call back at ${callbackTime}.,
         from: process.env.TWILIO_PHONE_NUMBER,
         to: tradieNumber,
       });
@@ -191,7 +191,7 @@ app.post('/sms', async (req, res) => {
     });
 
     outgoingMsg = completion.choices[0].message.content;
-    console.log(`AI reply: ${outgoingMsg}`);
+    console.log(AI reply: ${outgoingMsg});
 
     await twilioClient.messages.create({
       body: outgoingMsg,
@@ -219,23 +219,35 @@ app.post('/register', async (req, res) => {
 
   try {
     await registerTradie(name, business, email, phone);
-    console.log(`✅ Registered: ${name} (${phone})`);
+    console.log(✅ Registered: ${name} (${phone}));
 
-    // Respond early so user isn't waiting
     res.status(200).send('Registered and activated');
 
-    // Then send welcome SMS without blocking
-    twilioClient.messages.create({
-      body: `⚡️Hi ${name}, I am your AI Apprentice. Your AI admin is now active. Messages to this number will be handled automatically.`,
-      from: process.env.TWILIO_PHONE_NUMBER,
+    // Replace this with their assigned Twilio number (if dynamic later)
+    const assistantNumber = process.env.TWILIO_PHONE_NUMBER;
+
+    // Step 1: Welcome
+    await twilioClient.messages.create({
+      body: ⚡️Hi ${name}, I am your very own assistant that never sleeps. Your AI admin is now active.,
+      from: assistantNumber,
       to: phone,
-    })
-    .then(() => {
-      console.log(`Welcome SMS sent to ${phone}`);
-    })
-    .catch(err => {
-      console.error('Error sending welcome SMS:', err);
     });
+
+    // Step 2: Forwarding instructions
+    await twilioClient.messages.create({
+      body: 📲 Please forward your main mobile number to this AI number (${assistantNumber}) so we can handle missed calls for you. On iPhone/Android, just go to Phone > Settings > Call Forwarding.,
+      from: assistantNumber,
+      to: phone,
+    });
+
+    // Step 3: Optional tip
+    await twilioClient.messages.create({
+      body: Tip: Set forwarding to "When Busy" or "When Unanswered" so we only step in when you're away. You're all set ⚡️,
+      from: assistantNumber,
+      to: phone,
+    });
+
+    console.log(✅ Onboarding SMS sent to ${phone});
   } catch (err) {
     console.error('DB error:', err);
     res.status(500).send('Something went wrong');
@@ -253,7 +265,7 @@ app.get('/dashboard', async (req, res) => {
   try {
     const messages = await getMessagesForPhone(phone);
 
-    const html = `
+    const html = 
       <html>
         <head>
           <title>Volt Flow Dashboard</title>
@@ -272,13 +284,13 @@ app.get('/dashboard', async (req, res) => {
             ${messages
               .map(
                 (msg) =>
-                  `<tr><td>${msg.created_at}</td><td>${msg.incoming}</td><td>${msg.outgoing}</td></tr>`
+                  <tr><td>${msg.created_at}</td><td>${msg.incoming}</td><td>${msg.outgoing}</td></tr>
               )
               .join('')}
           </table>
         </body>
       </html>
-    `;
+    ;
     res.send(html);
   } catch (err) {
     console.error(err);
@@ -286,46 +298,133 @@ app.get('/dashboard', async (req, res) => {
   }
 });
 
-//voice
-app.post('/voice', async (req, res) => {
-  const callerRaw = req.body.From || '';
-  const caller = formatPhoneNumber(callerRaw);
+app.post('/voice', (req, res) => {
+  const twiml = new twilio.twiml.VoiceResponse();
 
-  console.log(`📞 Missed call from: ${caller}`);
+  twiml.say("Hi there! The tradie is currently unavailable. Please leave a message after the beep and we'll get back to you shortly.");
 
-  const customerMsg = `Hey! Sorry we missed your call. You can book a job, get a quote, or ask a question by replying here. Cheers!`;
+  twiml.record({
+    maxLength: 60,
+    playBeep: true,
+    transcribe: true,
+    transcribeCallback: 'https://volt-flow.onrender.com/voicemail',
+    action: 'https://volt-flow.onrender.com/voicemail',
+  });
 
-  const tradieMsg = `⚠️ Missed call from ${caller}. Auto-reply sent.`;
+  twiml.hangup();
+
+  res.type('text/xml').send(twiml.toString());
+});
+
+app.post('/call-status', async (req, res) => {
+  const callStatus = req.body.CallStatus; // 'no-answer', 'busy', 'completed', etc.
+  const fromRaw = req.body.From || '';
+  const from = formatPhoneNumber(fromRaw);
+  const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61418723328';
+
+  if (callStatus === 'no-answer' || callStatus === 'busy') {
+    const customerMsg = "Hey! Sorry we missed your call. You can book a job, get a quote, or ask a question by replying here. Cheers!";
+    const tradieMsg = `⚠️ Missed call from ${from}. Auto-reply sent.`;
+
+    try {
+      await twilioClient.messages.create({
+        body: customerMsg,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: from,
+      });
+
+      await twilioClient.messages.create({
+        body: tradieMsg,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: tradieNumber,
+      });
+    } catch (err) {
+      console.error('Error sending missed call SMS:', err);
+    }
+  }
+
+  res.status(200).send('Call status processed');
+});
+
+// ☎️ Incoming voice call - lets caller leave a voicemail
+app.post('/voice', (req, res) => {
+  const response = new twilio.twiml.VoiceResponse();
+
+  response.say("Hi there! The tradie is currently unavailable. Please leave a message after the beep and we'll get back to you shortly.");
+
+  response.record({
+    maxLength: 60, // seconds
+    playBeep: true,
+    transcribe: true,
+    transcribeCallback: 'https://volt-flow.onrender.com/voicemail', // Twilio will call this with the transcription
+    action: 'https://volt-flow.onrender.com/voicemail', // fallback if transcription fails
+  });
+
+  response.hangup();
+
+  res.type('text/xml');
+  res.send(response.toString());
+});
+
+
+// 🗣️ Voicemail transcription handler
+app.post('/voicemail', async (req, res) => {
+  const transcription = req.body.TranscriptionText || '';
+  const fromRaw = req.body.From || '';
+  const from = formatPhoneNumber(fromRaw); // Ensure formatPhoneNumber is defined
+  const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61418723328';
+
+  console.log(`🎙️ Voicemail from ${from}: ${transcription}`);
 
   try {
-    // Auto-text the customer
-    await twilioClient.messages.create({
-      body: customerMsg,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      to: caller,
+    // Generate AI reply using OpenAI
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a helpful Aussie tradie assistant replying to a voicemail. Keep it short, friendly, and helpful. Offer a callback or a quote.',
+        },
+        {
+          role: 'user',
+          content: transcription,
+        },
+      ],
     });
 
-    // Notify the tradie
-    const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61418723328';
+    const reply = completion.choices[0].message.content;
+    console.log(`🤖 AI reply: ${reply}`);
+
+    // Send SMS to the customer
     await twilioClient.messages.create({
-      body: tradieMsg,
+      body: reply,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to: from,
+    });
+
+    // Notify tradie
+    await twilioClient.messages.create({
+      body: `🎙️ New voicemail from ${from}: "${transcription}"\n\nAI replied: "${reply}"`,
       from: process.env.TWILIO_PHONE_NUMBER,
       to: tradieNumber,
     });
 
-    // Respond to Twilio to end the call (no ringing/voicemail)
-    res.type('text/xml');
-    res.send(`<Response></Response>`);
+    // Optional: log message in local DB
+    await logMessage(from, `Voicemail: ${transcription.slice(0, 500)}`, reply.slice(0, 500));
+
+    res.status(200).send('Voicemail handled');
   } catch (err) {
-    console.error('❌ Error handling voice call:', err);
-    res.status(500).send('Failed');
+    console.error('❌ Error handling voicemail:', err);
+    res.status(500).send('Failed to handle voicemail');
   }
 });
+
+
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 app.post('/create-checkout-session', async (req, res) => {
-  return res.status(200).json({ url: `${process.env.BASE_URL}/success` });
+  return res.status(200).json({ url: ${process.env.BASE_URL}/success });
 
   /* Stripe logic commented out */
 });
@@ -346,7 +445,7 @@ cron.schedule(
       }
 
       await twilioClient.messages.create({
-        body: `⚡️ Daily summary:\n${summary}`,
+        body: ⚡️ Daily summary:\n${summary},
         from: process.env.TWILIO_PHONE_NUMBER,
         to: tradieNumber,
       });
@@ -362,8 +461,6 @@ cron.schedule(
 );
 
 app.listen(port, () => {
-  console.log(`⚡️ AI Apprentice listening on port ${port}`);
-});
-
-
+  console.log(⚡️ AI Apprentice listening on port ${port});
+}); 
 
