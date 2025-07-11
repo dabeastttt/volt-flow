@@ -266,25 +266,31 @@ app.get('/dashboard', async (req, res) => {
     const messages = await getMessagesForPhone(phone);
 
     const html = `
-  <html>
-    <head>
-      <title>TradeAssist A.I Dashboard</title>
-      ...
-    </head>
-    <body>
-      <h2>Message History for ${phone}</h2>
-      <table>
-        <tr><th>Time</th><th>Incoming</th><th>Reply</th></tr>
-        ${messages
-          .map(
-            (msg) =>
-              `<tr><td>${msg.created_at}</td><td>${msg.incoming}</td><td>${msg.outgoing}</td></tr>`
-          )
-          .join('')}
-      </table>
-    </body>
-  </html>
-`;
+      <html>
+        <head>
+          <title>TradeAssist A.I Dashboard</title>
+        </head>
+        <body>
+          <h2>Message History for ${phone}</h2>
+          <table>
+            <tr><th>Time</th><th>Incoming</th><th>Reply</th></tr>
+            ${messages
+              .map(
+                (msg) =>
+                  `<tr><td>${msg.created_at}</td><td>${msg.incoming}</td><td>${msg.outgoing}</td></tr>`
+              )
+              .join('')}
+          </table>
+        </body>
+      </html>
+    `;
+
+    res.send(html);
+  } catch (err) {
+    console.error('Error loading dashboard:', err);
+    res.status(500).send('Error loading dashboard');
+  }
+});
 
 app.post('/call-status', async (req, res) => {
   const callStatus = req.body.CallStatus; // 'no-answer', 'busy', 'completed', etc.
