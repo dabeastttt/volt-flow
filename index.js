@@ -68,7 +68,7 @@ app.post('/sms', async (req, res) => {
   const sender = formatPhoneNumber(senderRaw);
   let outgoingMsg = '';
 
-  console.log(SMS from ${sender}: ${incomingMsg});
+  console.log(`SMS from ${sender}: ${incomingMsg}`);
 
   try {
     const customer = await getCustomerByPhone(sender);
