@@ -22,18 +22,19 @@ async function logMessage(phone, incoming, outgoing) {
   return data[0].id;
 }
 
-/**
- * Register a tradie
- */
 async function registerTradie(name, business, email, phone) {
   const { data, error } = await supabase
     .from('tradies')
     .insert([{ name, business, email, phone }]);
 
-  if (error) throw error;
+  if (error) {
+    console.error('❌ Supabase insert error:', JSON.stringify(error, null, 2));
+    throw new Error(error.message || 'Unknown Supabase error'); // force a real error
+  }
 
-  return data[0].id;
+  return data?.[0]?.id;
 }
+
 
 /**
  * Get messages for a phone number (latest first)
