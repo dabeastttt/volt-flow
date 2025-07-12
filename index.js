@@ -40,6 +40,16 @@ function formatPhoneNumber(phone) {
   return phone;
 }
 
+function isLowIntentMessage(message) {
+  const trimmed = message.trim().toLowerCase();
+  const lowIntentReplies = [
+    'ok', 'okay', 'thanks', 'thank you', 'cool',
+    '👍', '👌', 'great', 'no worries', 'cheers', 'got it',
+    'sounds good', 'roger', 'yep', 'yup', 'aye', 'k', 'sure',
+  ];
+  return lowIntentReplies.includes(trimmed) || trimmed.length < 3;
+}
+
 // Middleware
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -66,6 +76,12 @@ app.post('/sms', async (req, res) => {
   const incomingMsg = incomingMsgRaw.trim();
   const senderRaw = req.body.From || '';
   const sender = formatPhoneNumber(senderRaw);
+
+  if (isLowIntentMessage(incomingMsg)) {
+    console.log(`👋 Low intent message from ${sender}: "${incomingMsg}" - Ignoring.`);
+    return res.status(200).send('Low intent message ignored');
+  }
+
   let outgoingMsg = '';
 
   console.log(`SMS from ${sender}: ${incomingMsg}`);
