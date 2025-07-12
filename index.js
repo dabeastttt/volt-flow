@@ -239,7 +239,6 @@ app.post('/register', async (req, res) => {
 
     res.status(200).send('Registered and activated');
 
-    // Replace this with their assigned Twilio number (if dynamic later)
     const assistantNumber = process.env.TWILIO_PHONE_NUMBER;
 
     // Step 1: Welcome
@@ -263,12 +262,16 @@ app.post('/register', async (req, res) => {
       to: phone,
     });
 
-     console.log(`✅ Onboarding SMS sent to ${phone}`);
+    console.log(`✅ Onboarding SMS sent to ${phone}`);
   } catch (err) {
-    console.error('DB error:', err);
+    console.error('DB error:', err?.message || JSON.stringify(err, null, 2));
+    if (err && typeof err === 'object') {
+      console.error('📄 Full error details:', JSON.stringify(err, null, 2));
+    }
     res.status(500).send('Something went wrong');
   }
 });
+
 
 // 📊 View dashboard (basic HTML)
 app.get('/dashboard', async (req, res) => {
