@@ -231,6 +231,30 @@ app.post('/register', async (req, res) => {
     return res.status(400).send('Missing required fields');
   }
 
+  function formatPhoneNumber(raw) {
+    if (!raw || typeof raw !== 'string') return null;
+
+    // Remove spaces, parentheses, dashes
+    let cleaned = raw.replace(/[\s\-()]/g, '');
+
+    // If starts with '+', assume international format already
+    if (cleaned.startsWith('+')) {
+      if (!cleaned.startsWith('+61')) {
+        // Optionally reject or handle other country codes here
+        return cleaned;
+      }
+      return cleaned;
+    }
+
+    // If starts with 0 (local format), convert to +61
+    if (cleaned.startsWith('0')) {
+      return '+61' + cleaned.slice(1);
+    }
+
+    // Otherwise, add +61 prefix
+    return '+61' + cleaned;
+  }
+
   const phone = formatPhoneNumber(phoneRaw);
 
   try {
@@ -271,7 +295,6 @@ app.post('/register', async (req, res) => {
     res.status(500).send('Something went wrong');
   }
 });
-
 
 // 📊 View dashboard (basic HTML)
 app.get('/dashboard', async (req, res) => {
