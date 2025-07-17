@@ -1,483 +1,337 @@
-require('dotenv').config();
-const express = require('express');
-const bodyParser = require('body-parser');
-const { OpenAI } = require('openai');
-const twilio = require('twilio');
-const rateLimit = require('express-rate-limit');
-const path = require('path');
-const {
-  logMessage,
-  getMessagesForPhone,
-  registerTradie,
-  getTodaysBookingsSummary,
-  getCustomerByPhone,
-  saveCustomer,
-} = require('./db');
-const cron = require('node-cron');
+<!DOCTYPE html>
+<html lang="en">
+<script src="https://js.stripe.com/v3/"></script>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TradeAssist A.I Signup</title>
+<style>
 
-const app = express();
-const port = process.env.PORT || 10000;
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-
-// Helper: Format phone number to E.164 for Australia (+61)
-function formatPhoneNumber(phone) {
-  if (!phone) return phone;
-  let digits = phone.replace(/\D/g, ''); // Remove non-digits
-
-  // If Australian mobile number starts with 0 and is 10 digits
-  if (digits.length === 10 && digits.startsWith('0')) {
-    return '+61' + digits.slice(1);
-  }
-
-  // If already starts with +, assume correct format
-  if (phone.startsWith('+')) {
-    return phone;
-  }
-
-  // Otherwise, return original (you might want to expand this for other cases)
-  return phone;
+- {
+box-sizing: border-box;
 }
 
-function isLowIntentMessage(message) {
-  const trimmed = message.trim().toLowerCase();
-  const lowIntentReplies = [
-    'ok', 'okay', 'thanks', 'thank you', 'cool',
-    '👍', '👌', 'great', 'no worries', 'cheers', 'got it',
-    'sounds good', 'roger', 'yep', 'yup', 'aye', 'k', 'sure',
-  ];
-  return lowIntentReplies.includes(trimmed) || trimmed.length < 3;
+body, html {
+margin: 0;
+padding: 0;
+min-height: 100%;
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+background: #001426;
+color: #d0e7ff;
+overflow-x: hidden;
+scroll-behavior: smooth;
 }
 
-// Middleware
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public')));
+#matrixCanvas {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+z-index: 0;
+background: #001426;
+}
 
-// Serve success.html at /success (optional because it’s already in public)
-app.get('/success', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'success.html'));
-});
+main {
+position: relative;
+z-index: 10;
+max-width: 440px;
+margin: 3rem auto;
+background: rgba(3, 25, 52, 0.85);
+border-radius: 16px;
+box-shadow: 0 0 20px #004aadcc;
+padding: 2.5rem 3rem;
+}
 
-// Rate limiter: max 5 requests per minute per phone number or IP
-const limiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 5,
-  keyGenerator: (req) => req.body.From || req.ip,
-  handler: (req, res) => {
-    return res.status(429).send('Too many requests, please try again later.');
-  },
-});
-app.use('/sms', limiter);
+.mascot-wrapper {
+text-align: center;
+margin-bottom: 1.5rem;
+}
 
-app.post('/sms', async (req, res) => {
-  const incomingMsgRaw = req.body.Body || '';
-  const incomingMsg = incomingMsgRaw.trim();
-  const senderRaw = req.body.From || '';
-  const sender = formatPhoneNumber(senderRaw);
+.bolt-svg.glow-icon {
+width: 120px;   /* 4x bigger */
+height: 120px;
+filter: drop-shadow(0 0 12px #00aaffcc);
+animation: glowPulse 3s ease-in-out infinite;
+}
 
-  if (isLowIntentMessage(incomingMsg)) {
-    console.log(`👋 Low intent message from ${sender}: "${incomingMsg}" - Ignoring.`);
-    return res.status(200).send('Low intent message ignored');
+@keyframes glowPulse {
+0%, 100% {
+filter: drop-shadow(0 0 8px #00aaffaa);
+}
+50% {
+filter: drop-shadow(0 0 16px #33bbffcc);
+}
+}
+
+.bolt-wrapper {
+display: flex;
+justify-content: center;
+animation: slideToCenter 1.8s ease-out forwards;
+transform: translateX(100%);
+opacity: 0;
+margin-bottom: 1.5rem;
+}
+
+@keyframes slideToCenter {
+0% {
+transform: translateX(100%);
+opacity: 0;
+}
+100% {
+transform: translateX(0);
+opacity: 1;
+}
+}
+
+h1 {
+font-weight: 900;
+font-size: 2.6rem;
+margin: 0 0 0.6rem;
+text-align: center;
+color: #00aaff;
+text-shadow: 0 0 15px #00aaffbb;
+}
+
+h2 {
+font-weight: 400;
+font-size: 1.15rem;
+margin: 0 0 2rem;
+text-align: center;
+color: #a0d4ffcc;
+}
+
+label {
+display: block;
+margin-bottom: 0.4rem;
+font-weight: 600;
+color: #66bfffcc;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+select {
+width: 100%;
+padding: 0.75rem 1rem;
+margin-bottom: 1.5rem;
+border-radius: 10px;
+border: none;
+font-size: 1rem;
+color: white; /* <-- white text */
+background-color: rgba(5, 25, 52, 0.5);
+box-shadow: inset 0 2px 6px #00406faa;
+transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input:focus,
+select:focus {
+background-color: rgba(0, 170, 255, 0.2);
+outline: none;
+box-shadow: 0 0 15px #00aaffcc;
+color: white; /* keep white text on focus */
+}
+
+button {
+width: 100%;
+padding: 0.9rem;
+font-size: 1.2rem;
+font-weight: 700;
+color: #00406f;
+background: #00aaff;
+border: none;
+border-radius: 12px;
+cursor: pointer;
+box-shadow: 0 6px 18px #00aaffcc;
+transition: background 0.3s ease, color 0.3s ease;
+}
+
+button:hover,
+button:focus {
+background: #33bbff;
+color: #002a49;
+box-shadow: 0 8px 24px #33bbffdd;
+outline: none;
+}
+
+@media (max-width: 480px) {
+main {
+margin: 2rem 1rem;
+padding: 2rem 1.5rem;
+}
+}
+</style>
+</head>
+<body>
+
+<canvas id="matrixCanvas"></canvas>
+
+<main>
+<div class="bolt-wrapper">
+<svg class="bolt-svg glow-icon"
+viewBox="0 0 64 64"
+xmlns="http://www.w3.org/2000/svg"
+role="img"
+aria-label="Toolbox Icon">
+<defs>
+<linearGradient id="toolboxGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" stop-color="#00f0ff" />
+<stop offset="100%" stop-color="#007acc" />
+</linearGradient>
+</defs>
+
+```
+<!-- Toolbox base -->
+<rect x="8" y="22" width="48" height="28" rx="6" ry="6" fill="url(#toolboxGradient)" stroke="#004a8f" stroke-width="2"/>
+
+<!-- Toolbox handle -->
+<rect x="20" y="10" width="24" height="12" rx="4" ry="4" fill="url(#toolboxGradient)" stroke="#004a8f" stroke-width="2"/>
+
+<!-- Handle grip -->
+<rect x="26" y="6" width="12" height="6" rx="3" ry="3" fill="#004a8f" />
+
+<!-- Divider line -->
+<line x1="20" y1="22" x2="48" y2="22" stroke="#004a8f" stroke-width="2" />
+
+<!-- Lock circle -->
+<circle cx="32" cy="36" r="6" fill="#004a8f" />
+
+```
+
+</svg>
+</div>
+
+<h1>TradeAssist A.I </h1>
+<h2>24/7 Receptionist — The Front Desk That Never Sleeps. </h2>
+
+<form id="signupForm" autocomplete="off" novalidate>
+<label for="name">Full Name</label>
+<input type="text" id="name" name="name" placeholder="Name" required />
+
+```
+<label for="business">Business Name</label>
+<input type="text" id="business" name="business" placeholder="Business Name" required />
+
+<label for="email">Email Address</label>
+<input type="email" id="email" name="email" placeholder="Email@example.com" required />
+
+<label for="phone">Mobile Number</label>
+<input type="tel" id="phone" name="phone" placeholder="Number" pattern="[0-9\\s\\-+]+" required />
+
+<label for="planSelect">Select Subscription Plan:</label>
+<select id="planSelect" name="planSelect" required>
+  <option value="weekly">Weekly - $7 / week</option>
+  <option value="monthly">Monthly - $30 / month</option>
+</select>
+
+<button type="submit"> ONBOARD YOUR 24/7 Receptionist</button>
+
+```
+
+</form>
+</main>
+
+<script>
+const canvas = document.getElementById('matrixCanvas');
+const ctx = canvas.getContext('2d');
+
+let width, height;
+const fontSize = 16;
+let columns;
+const letters = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズヅブプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴンABDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+let drops = [];
+
+function resize() {
+width = window.innerWidth;
+height = window.innerHeight;
+canvas.width = width;
+canvas.height = height;
+
+```
+columns = Math.floor(width / fontSize);
+drops = [];
+for (let i = 0; i < columns; i++) {
+  drops[i] = 1;
+}
+
+```
+
+}
+
+resize();
+window.addEventListener('resize', resize);
+
+function draw() {
+ctx.fillStyle = 'rgba(0, 20, 50, 0.2)';
+ctx.fillRect(0, 0, width, height);
+
+```
+ctx.fillStyle = '#00aaff';
+ctx.font = fontSize + 'px monospace';
+
+for (let i = 0; i < drops.length; i++) {
+  const text = letters.charAt(Math.floor(Math.random() * letters.length));
+  const x = i * fontSize;
+  const y = drops[i] * fontSize;
+
+  ctx.fillText(text, x, y);
+
+  if (y > height && Math.random() > 0.975) {
+    drops[i] = 0;
   }
+  drops[i] += 0.3;
+}
 
-  let outgoingMsg = '';
+requestAnimationFrame(draw);
 
-  console.log(`SMS from ${sender}: ${incomingMsg}`);
+```
 
-  try {
-    const customer = await getCustomerByPhone(sender);
+}
 
-    const isBooking = /(book(ing)?|schedule|job)/i.test(incomingMsg);
-    const isQuote = /(quote|quoting|how much|cost|price)/i.test(incomingMsg);
-    const isCallback = /(call\s?back|ring|talk|speak)/i.test(incomingMsg);
-    const isBookingRequest = (isBooking || isQuote || isCallback);
+draw();
 
-    const callbackTime = '4 pm';
-    const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61418723328';
+document.getElementById('signupForm').addEventListener('submit', async (e) => {
+e.preventDefault();
+const form = e.target;
+if (!form.checkValidity()) {
+form.reportValidity();
+return;
+}
+const formData = new FormData(form);
+const data = Object.fromEntries(formData.entries());
 
-    // 👇 Save name + confirm booking immediately
-    if (customer && !customer.name && incomingMsg.split(' ').length <= 3 && incomingMsg.length > 1) {
-      await saveCustomer({ phone: sender, name: incomingMsg });
-      const customerName = incomingMsg;
-
-      outgoingMsg = `Thanks for booking, ${customerName}! The sparkie will call you back at ${callbackTime}. Cheers!`;
-
-      await twilioClient.messages.create({
-        body: outgoingMsg,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: sender,
-      });
-
-      await twilioClient.messages.create({
-        body: `⚡️ New request from ${customerName} (${sender}): "${incomingMsgRaw}". Will call back at ${callbackTime}.`,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: tradieNumber,
-      });
-
-      await logMessage(sender, incomingMsgRaw.slice(0, 500), outgoingMsg.slice(0, 500));
-      return res.status(200).send('Saved customer name and confirmed booking');
-    }
-
-    // 👇 Ask for name if it's a booking and we don't know the name yet
-    if (isBookingRequest && (!customer || !customer.name)) {
-      outgoingMsg = "Hi! To help with your request, could you please reply with your full name?";
-
-      await twilioClient.messages.create({
-        body: outgoingMsg,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: sender,
-      });
-
-      await logMessage(sender, incomingMsgRaw.slice(0, 500), outgoingMsg.slice(0, 500));
-      return res.status(200).send('Asked for customer name');
-    }
-
-    // 👇 Confirm booking normally if name already known
-    if (isBookingRequest && customer?.name) {
-      const customerName = customer.name;
-
-      outgoingMsg = `Thanks for your request, ${customerName}! The sparkie will call you back at ${callbackTime}. Cheers!`;
-
-      await twilioClient.messages.create({
-        body: outgoingMsg,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: sender,
-      });
-
-      await twilioClient.messages.create({
-        body: `⚡️ New request from ${customerName} (${sender}): "${incomingMsgRaw}". Will call back at ${callbackTime}.`,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: tradieNumber,
-      });
-
-      await logMessage(sender, incomingMsgRaw.slice(0, 500), outgoingMsg.slice(0, 500));
-      return res.status(200).send('Booking handled');
-    }
-
-    // 👇 AI fallback with few-shot examples
-    const previousMessages = await getMessagesForPhone(sender, { limit: 5 });
-
-    const messages = [
-      {
-        role: 'system',
-        content: 'You are a casual, friendly Aussie sparky assistant. Keep replies short and helpful. Suggest a quote, job booking or callback.',
-      },
-
-      // ✅ FEW-SHOT EXAMPLES
-      {
-        role: 'user',
-        content: 'Hi mate, I need a fan installed.',
-      },
-      {
-        role: 'assistant',
-        content: 'No worries! I can get that booked in. Can you send through your name and suburb?',
-      },
-      {
-        role: 'user',
-        content: 'What’s the price for downlights?',
-      },
-      {
-        role: 'assistant',
-        content: 'Prices vary a bit, but I can sort a quick quote. Mind letting me know how many lights and where you’re based?',
-      },
-      {
-        role: 'user',
-        content: 'Can I get someone to come look at a faulty switch?',
-      },
-      {
-        role: 'assistant',
-        content: 'Yep, we can help with that. Want me to lock in a callback? Just shoot over your name + suburb.',
-      },
-
-      // 👇 Previous messages (if any)
-      ...previousMessages.flatMap(msg => [
-        { role: 'user', content: msg.incoming },
-        { role: 'assistant', content: msg.outgoing },
-      ]),
-
-      // 👇 Current incoming message
-      { role: 'user', content: incomingMsg },
-    ];
-
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages,
-    });
-
-    outgoingMsg = completion.choices[0].message.content;
-    console.log(`AI reply: ${outgoingMsg}`);
-
-    await twilioClient.messages.create({
-      body: outgoingMsg,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      to: sender,
-    });
-
-    await logMessage(sender, incomingMsgRaw.slice(0, 500), outgoingMsg.slice(0, 500));
-    res.status(200).send('AI handled');
-  } catch (err) {
-    console.error('Unexpected error:', err);
-    res.status(500).send('Internal Server Error');
-  }
-});
-
-// 📝 Register Tradie
-app.post('/register', async (req, res) => {
-  const { name, business, email, phone: phoneRaw } = req.body;
-
-  if (!name || !business || !email || !phoneRaw) {
-    return res.status(400).send('Missing required fields');
-  }
-
-  function formatPhoneNumber(raw) {
-    if (!raw || typeof raw !== 'string') return null;
-
-    // Remove spaces, parentheses, dashes
-    let cleaned = raw.replace(/[\s\-()]/g, '');
-
-    // If starts with '+', assume international format already
-    if (cleaned.startsWith('+')) {
-      if (!cleaned.startsWith('+61')) {
-        // Optionally reject or handle other country codes here
-        return cleaned;
-      }
-      return cleaned;
-    }
-
-    // If starts with 0 (local format), convert to +61
-    if (cleaned.startsWith('0')) {
-      return '+61' + cleaned.slice(1);
-    }
-
-    // Otherwise, add +61 prefix
-    return '+61' + cleaned;
-  }
-
-  const phone = formatPhoneNumber(phoneRaw);
-
-  try {
-    await registerTradie(name, business, email, phone);
-    console.log(`✅ Registered: ${name} (${phone})`);
-
-    res.status(200).send('Registered and activated');
-
-    const assistantNumber = process.env.TWILIO_PHONE_NUMBER;
-
-    // Step 1: Welcome
-    await twilioClient.messages.create({
-      body: `⚡️Hi ${name}, I am your very own assistant that never sleeps. Your AI admin is now active.`,
-      from: assistantNumber,
-      to: phone,
-    });
-
-    // Step 2: Forwarding instructions
-    await twilioClient.messages.create({
-      body: `📲 Please forward your main mobile number to this AI number (${assistantNumber}) so we can handle missed calls for you. On iPhone/Android, just go to Phone > Settings > Call Forwarding.`,
-      from: assistantNumber,
-      to: phone,
-    });
-
-    // Step 3: Optional tip
-    await twilioClient.messages.create({
-      body: `Tip: Set forwarding to "When Busy" or "When Unanswered" so we only step in when you're away. You're all set ⚡️`,
-      from: assistantNumber,
-      to: phone,
-    });
-
-    console.log(`✅ Onboarding SMS sent to ${phone}`);
-  } catch (err) {
-    console.error('DB error:', err?.message || JSON.stringify(err, null, 2));
-    if (err && typeof err === 'object') {
-      console.error('📄 Full error details:', JSON.stringify(err, null, 2));
-    }
-    res.status(500).send('Something went wrong');
-  }
-});
-
-// 📊 View dashboard (basic HTML)
-app.get('/dashboard', async (req, res) => {
-  const { phone: phoneRaw } = req.query;
-
-  if (!phoneRaw) return res.status(400).send('Phone number required');
-
-  const phone = formatPhoneNumber(phoneRaw);
-
-  try {
-    const messages = await getMessagesForPhone(phone);
-
-    const html = `
-      <html>
-        <head>
-          <title>TradeAssist A.I Dashboard</title>
-        </head>
-        <body>
-          <h2>Message History for ${phone}</h2>
-          <table>
-            <tr><th>Time</th><th>Incoming</th><th>Reply</th></tr>
-            ${messages
-              .map(
-                (msg) =>
-                  `<tr><td>${msg.created_at}</td><td>${msg.incoming}</td><td>${msg.outgoing}</td></tr>`
-              )
-              .join('')}
-          </table>
-        </body>
-      </html>
-    `;
-
-    res.send(html);
-  } catch (err) {
-    console.error('Error loading dashboard:', err);
-    res.status(500).send('Error loading dashboard');
-  }
-});
-
-app.post('/call-status', async (req, res) => {
-  const callStatus = req.body.CallStatus; // 'no-answer', 'busy', 'completed', etc.
-  const fromRaw = req.body.From || '';
-  const from = formatPhoneNumber(fromRaw);
-  const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61418723328';
-
-  if (callStatus === 'no-answer' || callStatus === 'busy') {
-    const customerMsg = "Hey! Sorry we missed your call. You can book a job, get a quote, or ask a question by replying here. Cheers!";
-    const tradieMsg = `⚠️ Missed call from ${from}. Auto-reply sent.`;
-
-    try {
-      await twilioClient.messages.create({
-        body: customerMsg,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: from,
-      });
-
-      await twilioClient.messages.create({
-        body: tradieMsg,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: tradieNumber,
-      });
-    } catch (err) {
-      console.error('Error sending missed call SMS:', err);
-    }
-  }
-
-  res.status(200).send('Call status processed');
-});
-
-// ☎️ Incoming voice call - lets caller leave a voicemail
-app.post('/voice', (req, res) => {
-  const response = new twilio.twiml.VoiceResponse();
-
-  response.say("Hi there! The tradie is currently unavailable. Please leave a message after the beep and we'll get back to you shortly.");
-
-  response.record({
-    maxLength: 60, // seconds
-    playBeep: true,
-    transcribe: true,
-    transcribeCallback: 'https://volt-flow.onrender.com/voicemail', // Twilio will call this with the transcription
-    action: 'https://volt-flow.onrender.com/voicemail', // fallback if transcription fails
+```
+try {
+  const response = await fetch('/register', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
   });
 
-  response.hangup();
+ if (response.ok) {
 
-  res.type('text/xml');
-  res.send(response.toString());
+```
+
+const stripeSession = await fetch('/create-checkout-session', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ plan: data.planSelect })  // send selected plan
 });
 
-
-// 🗣️ Voicemail transcription handler
-app.post('/voicemail', async (req, res) => {
-  const transcription = req.body.TranscriptionText || '';
-  const fromRaw = req.body.From || '';
-  const from = formatPhoneNumber(fromRaw); // Ensure formatPhoneNumber is defined
-  const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61418723328';
-
-  console.log(`🎙️ Voicemail from ${from}: ${transcription}`);
-
-  try {
-    // Generate AI reply using OpenAI
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a helpful Aussie tradie assistant replying to a voicemail. Keep it short, friendly, and helpful. Offer a callback or a quote.',
-        },
-        {
-          role: 'user',
-          content: transcription,
-        },
-      ],
-    });
-
-    const reply = completion.choices[0].message.content;
-    console.log(`🤖 AI reply: ${reply}`);
-
-    // Send SMS to the customer
-    await twilioClient.messages.create({
-      body: reply,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      to: from,
-    });
-
-    // Notify tradie
-    await twilioClient.messages.create({
-      body: `🎙️ New voicemail from ${from}: "${transcription}"\n\nAI replied: "${reply}"`,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      to: tradieNumber,
-    });
-
-    // Optional: log message in local DB
-    await logMessage(from, `Voicemail: ${transcription.slice(0, 500)}`, reply.slice(0, 500));
-
-    res.status(200).send('Voicemail handled');
-  } catch (err) {
-    console.error('❌ Error handling voicemail:', err);
-    res.status(500).send('Failed to handle voicemail');
-  }
+const session = await stripeSession.json();
+if (session.url) {
+window.location.href = session.url; // Redirect to Stripe Checkout
+} else {
+alert("Error launching Stripe checkout.");
+}
+} else {
+alert("Oops, something went wrong. Please try again.");
+}
+} catch (error) {
+alert("Network error. Please check your connection.");
+}
 });
+</script>
 
-
-
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-
-app.post('/create-checkout-session', async (req, res) => {
-  return res.status(200).json({ url: `${process.env.BASE_URL}/success` });
-
-  /* Stripe logic commented out */
-});
-
-// Schedule daily summary SMS to tradie at 3 PM every day
-cron.schedule(
-  '0 15 * * *',
-  async () => {
-    try {
-      const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61418723328';
-
-      // Get today's bookings/calls/quotes summary text
-      const summary = await getTodaysBookingsSummary();
-
-      if (!summary || summary.trim().length === 0) {
-        console.log('No bookings or calls today, skipping summary SMS.');
-        return;
-      }
-
-      await twilioClient.messages.create({
-        body: `⚡️ Daily summary:\n${summary}`,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: tradieNumber,
-      });
-
-      console.log('Sent daily summary SMS to tradie.');
-    } catch (err) {
-      console.error('Error sending daily summary SMS:', err);
-    }
-  },
-  {
-    timezone: 'Australia/Sydney',
-  }
-);
-
-app.listen(port, () => {
-  console.log(`⚡️ AI Apprentice listening on port ${port}`);
-}); 
+</body>
+</html>
