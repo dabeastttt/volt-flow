@@ -398,26 +398,40 @@ app.post('/call-status', async (req, res) => {
   const fromRaw = req.body.From || '';
   const from = formatPhoneNumber(fromRaw);
   const tradieNumber = process.env.TRADIE_PHONE_NUMBER;
+  const introMsg = INTRO_MESSAGE;
+  const tradieMsg = `⚠️ Missed call from ${from}. Auto‑reply sent.`;
 
   if (['no-answer', 'busy'].includes(callStatus)) {
-    const introMsg = INTRO_MESSAGE;
-    const tradieMsg = `⚠️ Missed call from ${from}. Auto‑reply sent.`;
-
     try {
+      // 🕓 Check if intro message was recently sent
+      const lastMsg = await getLastMessage(from);
+      const now = new Date();
+      const lastSent = new Date(lastMsg?.created_at || 0);
+      const minsSince = (now - lastSent) / (1000 * 60);
+
+      if (minsSince < 15 && lastMsg?.outgoing === introMsg) {
+        console.log(`⏳ Intro message recently sent to ${from}. Skipping.`);
+        return res.status(200).send('Intro recently sent. Skipping.');
+      }
+
       // 1. Send intro SMS to customer
       await twilioClient.messages.create({ body: introMsg, from: process.env.TWILIO_PHONE_NUMBER, to: from });
       // 2. Notify tradie
       await twilioClient.messages.create({ body: tradieMsg, from: process.env.TWILIO_PHONE_NUMBER, to: tradieNumber });
+      // 3. Log message in DB
+      await logMessage(from, 'Missed call auto-reply', introMsg);
 
-      // 3. Use DB helpers to flag the intro
+      // 4. Mark customer as introduced
       const customer = await getCustomerByPhone(from);
       if (!customer) {
         await saveCustomer({ phone: from, wasIntroduced: true });
       } else if (!customer.wasIntroduced) {
-        await saveCustomer({ phone: from, wasIntroduced: true });
+        await saveCustomer({ ...customer, wasIntroduced: true });
       }
+
+      console.log(`✅ Intro sent to ${from}`);
     } catch (err) {
-      console.error('Error handling missed call:', err);
+      console.error('❌ Error handling missed call:', err);
     }
   }
 
