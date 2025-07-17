@@ -95,7 +95,7 @@ app.post('/sms', async (req, res) => {
     const isCallback = /(call\s?back|ring|talk|speak)/i.test(incomingMsg);
     const isBookingRequest = isBooking || isQuote || isCallback;
     const callbackTime = '4 pm';
-    const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61418723328';
+    const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61406435844';
 
     //  Determine if customer needs re-intro after 30 days
     let needsIntro = false;
