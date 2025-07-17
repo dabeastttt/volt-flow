@@ -97,7 +97,7 @@ app.post('/sms', async (req, res) => {
     const callbackTime = '4 pm';
     const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61418723328';
 
-    // 👇 Determine if customer needs re-intro after 30 days
+    //  Determine if customer needs re-intro after 30 days
     let needsIntro = false;
 
     if (!customer) {
@@ -154,7 +154,7 @@ app.post('/sms', async (req, res) => {
       return res.status(200).send('Saved customer name and confirmed booking');
     }
 
-    // 👇 Ask for name if it's a booking and we don't know the name yet
+    //  Ask for name if it's a booking and we don't know the name yet
     if (isBookingRequest && (!customer || !customer.name)) {
       outgoingMsg = "Hi! To help with your request, could you please reply with your full name?";
 
@@ -168,7 +168,7 @@ app.post('/sms', async (req, res) => {
       return res.status(200).send('Asked for customer name');
     }
 
-    // 👇 Confirm booking normally
+    //  Confirm booking normally
     if (isBookingRequest && customer?.name) {
       const customerName = customer.name;
 
@@ -190,7 +190,7 @@ app.post('/sms', async (req, res) => {
       return res.status(200).send('Booking handled');
     }
 
-    // 👇 Fallback to AI assistant
+    //  Fallback to AI assistant
     return await handleWithAI(incomingMsgRaw, sender, res);
   } catch (err) {
     console.error('Unexpected error:', err);
@@ -198,7 +198,7 @@ app.post('/sms', async (req, res) => {
   }
 });
 
-   // 👇 AI fallback with few-shot examples
+   //  AI fallback with few-shot examples
 app.post('/your-endpoint', async (req, res) => {
   try {
     const sender = req.body.From;
@@ -403,7 +403,7 @@ app.post('/call-status', async (req, res) => {
 
   if (['no-answer', 'busy'].includes(callStatus)) {
     try {
-      // 🕓 Check if intro message was recently sent
+      // Check if intro message was recently sent
       const lastMsg = await getLastMessage(from);
       const now = new Date();
       const lastSent = new Date(lastMsg?.created_at || 0);

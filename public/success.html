@@ -1,149 +1,133 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Success — Trade Assist A.I</title>
-<style>
-  /* Background & body style */
-  body, html {
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    overflow: hidden;
-    background: #001426;
-    color: #00aaff;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-  }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Success — TradeAssist A.I</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      overflow: hidden;
+      background: #001426;
+      color: #00aaff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
 
-  canvas {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
-  }
+    canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
 
-  .success-box {
-    position: relative;
-    z-index: 1;
-    background: rgba(3, 25, 52, 0.85);
-    border-radius: 16px;
-    padding: 2.5rem 2rem;
-    max-width: 320px;
-    text-align: center;
-    margin: 3rem auto;
-    box-shadow:
-      0 0 16px 4px #00aaff66,
-      inset 0 0 10px 2px #00aaff44;
-  }
+    .success-box {
+      position: relative;
+      z-index: 1;
+      background: rgba(3, 25, 52, 0.85);
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      max-width: 360px;
+      text-align: center;
+      margin: 3rem auto;
+      box-shadow:
+        0 0 16px 4px #00aaff66,
+        inset 0 0 10px 2px #00aaff44;
+    }
 
-  .bolt-wrapper {
-    margin-bottom: 1rem;
-    display: flex;
-    justify-content: center;
-    animation: slideToCenter 1.8s ease-out forwards;
-    transform: translateX(100%);
-    opacity: 0;
-  }
-
-  @keyframes slideToCenter {
-    0% {
+    .bolt-wrapper {
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: center;
+      animation: slideToCenter 1.8s ease-out forwards;
       transform: translateX(100%);
       opacity: 0;
     }
-    100% {
-      transform: translateX(0);
-      opacity: 1;
+
+    @keyframes slideToCenter {
+      0% {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      100% {
+        transform: translateX(0);
+        opacity: 1;
+      }
     }
-  }
 
-  .bolt-svg.glow-icon {
-    width: 120px;   /* same size as index.html */
-    height: 120px;
-    filter: drop-shadow(0 0 12px #00aaffcc);
-    animation: glowPulse 3s ease-in-out infinite;
-    display: block;
-    margin: 0 auto 1rem;
-  }
-
-  @keyframes glowPulse {
-    0%, 100% {
-      filter: drop-shadow(0 0 8px #00aaffaa);
+    .bolt-svg.glow-icon {
+      width: 120px;
+      height: 120px;
+      filter: drop-shadow(0 0 12px #00aaffcc);
+      animation: glowPulse 3s ease-in-out infinite;
+      display: block;
+      margin: 0 auto 1rem;
     }
-    50% {
-      filter: drop-shadow(0 0 16px #33bbffcc);
+
+    @keyframes glowPulse {
+      0%, 100% {
+        filter: drop-shadow(0 0 8px #00aaffaa);
+      }
+      50% {
+        filter: drop-shadow(0 0 16px #33bbffcc);
+      }
     }
-  }
 
-  h1 {
-    font-size: 2.8rem;
-    font-weight: 900;
-    margin: 0.5rem 0 1rem;
-    text-shadow: 0 0 15px #00aaffbb;
-  }
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 900;
+      margin: 0.5rem 0 1rem;
+      text-shadow: 0 0 15px #00aaffbb;
+    }
 
-  p {
-    font-size: 1.25rem;
-    margin-bottom: 2rem;
-    color: #a0d4ffcc;
-  }
+    p {
+      font-size: 1.25rem;
+      margin-bottom: 2rem;
+      color: #a0d4ffcc;
+    }
 
-  a {
-    text-decoration: none;
-    color: #00406f;
-    background: #00aaff;
-    padding: 12px 25px;
-    font-weight: 700;
-    border-radius: 12px;
-    box-shadow: 0 6px 18px #00aaffcc;
-    transition: background 0.3s ease, color 0.3s ease;
-  }
+    a {
+      text-decoration: none;
+      color: #00406f;
+      background: #00aaff;
+      padding: 12px 25px;
+      font-weight: 700;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px #00aaffcc;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
 
-  a:hover, a:focus {
-    background: #33bbff;
-    color: #002a49;
-    box-shadow: 0 8px 24px #33bbffdd;
-    outline: none;
-  }
-</style>
+    a:hover, a:focus {
+      background: #33bbff;
+      color: #002a49;
+      box-shadow: 0 8px 24px #33bbffdd;
+      outline: none;
+    }
+  </style>
 </head>
 <body>
 
 <canvas id="matrixCanvas"></canvas>
 
 <div class="success-box">
-  <div class="bolt-wrapper" aria-hidden="true" title="Toolbox Icon">
-    <svg class="bolt-svg glow-icon"
-         viewBox="0 0 64 64"
-         xmlns="http://www.w3.org/2000/svg"
-         role="img"
-         aria-label="Toolbox Icon">
+  <div class="bolt-wrapper" aria-hidden="true">
+    <svg class="bolt-svg glow-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <linearGradient id="toolboxGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#00f0ff" />
-          <stop offset="100%" stop-color="#007acc" />
+        <linearGradient id="helmetGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#00f0ff"/>
+          <stop offset="100%" stop-color="#007acc"/>
         </linearGradient>
       </defs>
-
-      <!-- Toolbox base -->
-      <rect x="8" y="22" width="48" height="28" rx="6" ry="6" fill="url(#toolboxGradient)" stroke="#004a8f" stroke-width="2"/>
-      
-      <!-- Toolbox handle -->
-      <rect x="20" y="10" width="24" height="12" rx="4" ry="4" fill="url(#toolboxGradient)" stroke="#004a8f" stroke-width="2"/>
-      
-      <!-- Handle grip -->
-      <rect x="26" y="6" width="12" height="6" rx="3" ry="3" fill="#004a8f" />
-      
-      <!-- Divider line -->
-      <line x1="20" y1="22" x2="48" y2="22" stroke="#004a8f" stroke-width="2" />
-      
-      <!-- Lock circle -->
-      <circle cx="32" cy="36" r="6" fill="#004a8f" />
+      <!-- Hard hat icon -->
+      <path d="M32 12c-11 0-20 9-20 20v5h40v-5c0-11-9-20-20-20z" fill="url(#helmetGradient)" stroke="#004a8f" stroke-width="2"/>
+      <path d="M24 12v6m8-6v6m8-6v6" stroke="#004a8f" stroke-width="2" />
+      <rect x="12" y="37" width="40" height="5" rx="2.5" fill="#004a8f" />
     </svg>
   </div>
 
@@ -159,7 +143,7 @@
   let width, height;
   const fontSize = 16;
   let columns;
-  const letters = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズヅブプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴンABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+<>?';
   let drops = [];
 
   function resize() {
@@ -167,43 +151,38 @@
     height = window.innerHeight;
     canvas.width = width;
     canvas.height = height;
-
     columns = Math.floor(width / fontSize);
-    drops = [];
-    for (let i = 0; i < columns; i++) {
-      drops[i] = 1;
-    }
+    drops = Array.from({ length: columns }).map(() => Math.random() * height / fontSize);
   }
 
-  resize();
-  window.addEventListener('resize', resize);
-
   function draw() {
-    ctx.fillStyle = 'rgba(0, 20, 50, 0.2)'; // Dark blue translucent bg for trail effect
+    ctx.fillStyle = 'rgba(0, 20, 50, 0.2)';
     ctx.fillRect(0, 0, width, height);
 
-    ctx.fillStyle = '#00aaff'; // Blue matrix letters
-    ctx.font = fontSize + 'px monospace';
+    ctx.fillStyle = '#00aaff';
+    ctx.font = `${fontSize}px monospace`;
 
     for (let i = 0; i < drops.length; i++) {
-      const text = letters.charAt(Math.floor(Math.random() * letters.length));
+      const char = letters.charAt(Math.floor(Math.random() * letters.length));
       const x = i * fontSize;
       const y = drops[i] * fontSize;
 
-      ctx.fillText(text, x, y);
+      ctx.fillText(char, x, y);
 
       if (y > height && Math.random() > 0.975) {
         drops[i] = 0;
       }
+
       drops[i] += 0.3;
     }
 
     requestAnimationFrame(draw);
   }
 
+  resize();
   draw();
+  window.addEventListener('resize', resize);
 </script>
 
 </body>
 </html>
-

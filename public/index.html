@@ -42,27 +42,6 @@ main {
   padding: 2.5rem 3rem;
 }
 
-.mascot-wrapper {
-  text-align: center;
-  margin-bottom: 1.5rem;
-}
-
-.bolt-svg.glow-icon {
-  width: 120px;
-  height: 120px;
-  filter: drop-shadow(0 0 12px #00aaffcc);
-  animation: glowPulse 3s ease-in-out infinite;
-}
-
-@keyframes glowPulse {
-  0%, 100% {
-    filter: drop-shadow(0 0 8px #00aaffaa);
-  }
-  50% {
-    filter: drop-shadow(0 0 16px #33bbffcc);
-  }
-}
-
 .bolt-wrapper {
   display: flex;
   justify-content: center;
@@ -80,6 +59,22 @@ main {
   100% {
     transform: translateX(0);
     opacity: 1;
+  }
+}
+
+.glow-icon {
+  width: 120px;
+  height: 120px;
+  filter: drop-shadow(0 0 12px #00aaffcc);
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px #00aaffaa);
+  }
+  50% {
+    filter: drop-shadow(0 0 16px #33bbffcc);
   }
 }
 
@@ -167,18 +162,16 @@ button:focus {
 
 <main>
   <div class="bolt-wrapper">
-    <svg class="bolt-svg glow-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+    <!-- Hard Hat SVG Icon -->
+    <svg class="glow-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <linearGradient id="toolboxGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient id="hatGradient" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stop-color="#00f0ff" />
           <stop offset="100%" stop-color="#007acc" />
         </linearGradient>
       </defs>
-      <rect x="8" y="22" width="48" height="28" rx="6" ry="6" fill="url(#toolboxGradient)" stroke="#004a8f" stroke-width="2"/>
-      <rect x="20" y="10" width="24" height="12" rx="4" ry="4" fill="url(#toolboxGradient)" stroke="#004a8f" stroke-width="2"/>
-      <rect x="26" y="6" width="12" height="6" rx="3" ry="3" fill="#004a8f" />
-      <line x1="20" y1="22" x2="48" y2="22" stroke="#004a8f" stroke-width="2" />
-      <circle cx="32" cy="36" r="6" fill="#004a8f" />
+      <path d="M32 8c-11 0-20 9-20 20v4c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4v-4c0-11-9-20-20-20z" fill="url(#hatGradient)" stroke="#004a8f" stroke-width="2"/>
+      <path d="M20 36v-4c0-6.6 5.4-12 12-12s12 5.4 12 12v4" fill="none" stroke="#004a8f" stroke-width="2"/>
     </svg>
   </div>
 
@@ -196,7 +189,7 @@ button:focus {
     <input type="email" id="email" name="email" placeholder="Email@example.com" required />
 
     <label for="phone">Mobile Number</label>
-    <input type="tel" id="phone" name="phone" placeholder="Number" pattern="[0-9\s\-+]+" required />
+    <input type="tel" id="phone" name="phone" placeholder="0400 000 000" pattern="[0-9\s\-+]+" required />
 
     <label for="planSelect">Select Subscription Plan:</label>
     <select id="planSelect" name="planSelect" required>
@@ -211,54 +204,51 @@ button:focus {
 <script>
 const canvas = document.getElementById('matrixCanvas');
 const ctx = canvas.getContext('2d');
-
-let width, height;
+let width, height, columns;
 const fontSize = 16;
-let columns;
-const letters = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズヅブプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴンABDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-let drops = [0];
+let drops = [];
 
-function resize() {
+const letters = 'アァカサタナハマヤラ0123456789$#%@&*!ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+function resizeCanvas() {
   width = window.innerWidth;
   height = window.innerHeight;
   canvas.width = width;
   canvas.height = height;
 
   columns = Math.floor(width / fontSize);
-  drops = [0.1];
+  drops = [];
   for (let i = 0; i < columns; i++) {
     drops[i] = Math.random() * height / fontSize;
   }
 }
 
-function draw() {
+function drawMatrix() {
   ctx.fillStyle = 'rgba(0, 20, 50, 0.2)';
   ctx.fillRect(0, 0, width, height);
 
   ctx.fillStyle = '#00aaff';
   ctx.font = fontSize + 'px monospace';
 
-  for (let i = 0; i < drops.length; i++) {
+  for (let i = 0; i < columns; i++) {
     const text = letters.charAt(Math.floor(Math.random() * letters.length));
-    const x = i * fontSize;
-    const y = drops[i] * fontSize;
+    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
 
-    ctx.fillText(text, x, y);
-
-    if (y > height && Math.random() > 0.975) {
+    if (drops[i] * fontSize > height && Math.random() > 0.975) {
       drops[i] = 0;
     }
 
     drops[i] += 1;
   }
 
-  requestAnimationFrame(draw);
+  requestAnimationFrame(drawMatrix);
 }
 
-resize();
-draw();
-window.addEventListener('resize', resize);
+resizeCanvas();
+drawMatrix();
+window.addEventListener('resize', resizeCanvas);
 
+// Form Submission
 document.getElementById('signupForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const form = e.target;
