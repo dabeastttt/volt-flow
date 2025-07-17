@@ -320,7 +320,7 @@ app.post('/register', async (req, res) => {
     await registerTradie(name, business, email, phone);
     console.log(`✅ Registered: ${name} (${phone})`);
 
-    res.status(200).send('Registered and activated');
+    res.redirect('/success.html');
 
     const assistantNumber = process.env.TWILIO_PHONE_NUMBER;
 
