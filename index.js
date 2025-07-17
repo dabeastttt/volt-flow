@@ -21,6 +21,8 @@ const port = process.env.PORT || 10000;
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
+const INTRO_MESSAGE = `Hey mate, I’m currently on the tools but I’m handing you to my AI assistant. You can book a job, get a quote, or ask a question by replying here. Leave your name and contact details and I’ll get back to you.`;
+
 // Helper: Format phone number to E.164 for Australia (+61)
 function formatPhoneNumber(phone) {
   if (!phone) return phone;
@@ -83,23 +85,55 @@ app.post('/sms', async (req, res) => {
   }
 
   let outgoingMsg = '';
-
   console.log(`SMS from ${sender}: ${incomingMsg}`);
 
   try {
-    const customer = await getCustomerByPhone(sender);
-
+    let customer = await getCustomerByPhone(sender);
+    const isNewCustomer = !customer;
     const isBooking = /(book(ing)?|schedule|job)/i.test(incomingMsg);
     const isQuote = /(quote|quoting|how much|cost|price)/i.test(incomingMsg);
     const isCallback = /(call\s?back|ring|talk|speak)/i.test(incomingMsg);
-    const isBookingRequest = (isBooking || isQuote || isCallback);
-
+    const isBookingRequest = isBooking || isQuote || isCallback;
     const callbackTime = '4 pm';
     const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61418723328';
 
-    // 👇 Save name + confirm booking immediately
+    // 👇 Determine if customer needs re-intro after 30 days
+    let needsIntro = false;
+
+    if (!customer) {
+      needsIntro = true;
+    } else {
+      const lastIntro = new Date(customer.created_at);
+      const now = new Date();
+      const daysSinceIntro = Math.floor((now - lastIntro) / (1000 * 60 * 60 * 24));
+
+      if (!customer.wasIntroduced || daysSinceIntro >= 30) {
+        needsIntro = true;
+      }
+    }
+
+    if (needsIntro) {
+      outgoingMsg = `Hey mate, I’m currently on the tools but I’m handing you to my AI assistant. You can book a job, get a quote, or ask a question by replying here. Leave your name and contact details and I’ll get back to you.`;
+
+      await twilioClient.messages.create({
+        body: outgoingMsg,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: sender,
+      });
+
+      if (customer) {
+        await saveCustomer({ ...customer, wasIntroduced: true });
+      } else {
+        await saveCustomer({ phone: sender, wasIntroduced: true });
+      }
+
+      await logMessage(sender, incomingMsgRaw.slice(0, 500), outgoingMsg.slice(0, 500));
+      return res.status(200).send('AI assistant intro sent');
+    }
+
+    // 👇 Save name + confirm booking
     if (customer && !customer.name && incomingMsg.split(' ').length <= 3 && incomingMsg.length > 1) {
-      await saveCustomer({ phone: sender, name: incomingMsg });
+      await saveCustomer({ ...customer, phone: sender, name: incomingMsg });
       const customerName = incomingMsg;
 
       outgoingMsg = `Thanks for booking, ${customerName}! The sparkie will call you back at ${callbackTime}. Cheers!`;
@@ -134,7 +168,7 @@ app.post('/sms', async (req, res) => {
       return res.status(200).send('Asked for customer name');
     }
 
-    // 👇 Confirm booking normally if name already known
+    // 👇 Confirm booking normally
     if (isBookingRequest && customer?.name) {
       const customerName = customer.name;
 
@@ -156,49 +190,73 @@ app.post('/sms', async (req, res) => {
       return res.status(200).send('Booking handled');
     }
 
-    // 👇 AI fallback with few-shot examples
+    // 👇 Fallback to AI assistant
+    return await handleWithAI(incomingMsgRaw, sender, res);
+  } catch (err) {
+    console.error('Unexpected error:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+   // 👇 AI fallback with few-shot examples
+app.post('/your-endpoint', async (req, res) => {
+  try {
+    const sender = req.body.From;
+    const incomingMsgRaw = req.body.Body;
+    const incomingMsg = incomingMsgRaw.trim();
+    const tradieType = await getTradieType(sender); // e.g. 'electrician', 'plumber', 'carpenter'
     const previousMessages = await getMessagesForPhone(sender, { limit: 5 });
 
+    const toneMap = {
+      electrician: 'You are a casual, friendly Aussie sparky assistant. Keep replies short and helpful. Suggest a quote, job booking or callback.',
+      plumber: 'You are a casual, friendly Aussie plumbing assistant. Keep replies short and helpful. Suggest a quote, job booking or callback.',
+      carpenter: 'You are a casual, friendly Aussie carpentry assistant. Keep replies short and helpful. Suggest a quote, job booking or callback.',
+    };
+
+    const examplesMap = {
+      electrician: [
+        { role: 'user', content: 'Hi mate, I need a fan installed.' },
+        { role: 'assistant', content: 'No worries! I can get that booked in. Can you send through your name and suburb?' },
+        { role: 'user', content: 'What’s the price for downlights?' },
+        { role: 'assistant', content: 'Prices vary a bit, but I can sort a quick quote. Mind letting me know how many lights and where you’re based?' },
+        { role: 'user', content: 'Can I get someone to come look at a faulty switch?' },
+        { role: 'assistant', content: 'Yep, we can help with that. Want me to lock in a callback? Just shoot over your name + suburb.' },
+        { role: 'user', content: 'G’day, power’s out in part of the house.' },
+        { role: 'assistant', content: 'Bugger! Sounds like a faulty circuit. Can you flick me your name + address so we can sort it?' },
+        { role: 'user', content: 'Do you do switchboard upgrades?' },
+        { role: 'assistant', content: 'Sure do. Happy to give you a quote — just need your name and location to start.' },
+        { role: 'user', content: 'Need someone to wire up my shed.' },
+        { role: 'assistant', content: 'Easy done. Want to send over your name + suburb? We’ll lock something in.' },
+      ],
+      plumber: [
+        { role: 'user', content: 'Pipe’s leaking under the sink.' },
+        { role: 'assistant', content: 'Yikes! Let’s get that sorted quick. Can you send me your name + where you’re located?' },
+        { role: 'user', content: 'How much to fix a hot water system?' },
+        { role: 'assistant', content: 'Depends on the system, but we can quote it up. Shoot through your name and postcode.' },
+        { role: 'user', content: 'Toilet’s blocked bad.' },
+        { role: 'assistant', content: 'We can unblock it today. Want to send over your name + suburb and I’ll tee it up?' },
+      ],
+      carpenter: [
+        { role: 'user', content: 'Can you build a deck?' },
+        { role: 'assistant', content: 'Absolutely. Just need your name and suburb to give you a proper quote.' },
+        { role: 'user', content: 'Looking to fix some broken steps.' },
+        { role: 'assistant', content: 'No worries, we do repairs too. Flick me your name and location and I’ll sort it.' },
+        { role: 'user', content: 'Do you install kitchen cabinets?' },
+        { role: 'assistant', content: 'Yep, we handle all that. Send over your name and postcode so we can get you a price.' },
+      ]
+    };
+
+    const systemMessage = toneMap[tradieType] || 'You are a helpful Aussie trades assistant. Keep things short, casual, and ask for name + location to follow up.';
+    const examples = examplesMap[tradieType] || [];
+
     const messages = [
-      {
-        role: 'system',
-        content: 'You are a casual, friendly Aussie sparky assistant. Keep replies short and helpful. Suggest a quote, job booking or callback.',
-      },
-
-      // ✅ FEW-SHOT EXAMPLES
-      {
-        role: 'user',
-        content: 'Hi mate, I need a fan installed.',
-      },
-      {
-        role: 'assistant',
-        content: 'No worries! I can get that booked in. Can you send through your name and suburb?',
-      },
-      {
-        role: 'user',
-        content: 'What’s the price for downlights?',
-      },
-      {
-        role: 'assistant',
-        content: 'Prices vary a bit, but I can sort a quick quote. Mind letting me know how many lights and where you’re based?',
-      },
-      {
-        role: 'user',
-        content: 'Can I get someone to come look at a faulty switch?',
-      },
-      {
-        role: 'assistant',
-        content: 'Yep, we can help with that. Want me to lock in a callback? Just shoot over your name + suburb.',
-      },
-
-      // 👇 Previous messages (if any)
+      { role: 'system', content: systemMessage },
+      ...examples,
       ...previousMessages.flatMap(msg => [
         { role: 'user', content: msg.incoming },
         { role: 'assistant', content: msg.outgoing },
       ]),
-
-      // 👇 Current incoming message
-      { role: 'user', content: incomingMsg },
+      { role: 'user', content: incomingMsg }
     ];
 
     const completion = await openai.chat.completions.create({
@@ -206,7 +264,7 @@ app.post('/sms', async (req, res) => {
       messages,
     });
 
-    outgoingMsg = completion.choices[0].message.content;
+    const outgoingMsg = completion.choices[0].message.content;
     console.log(`AI reply: ${outgoingMsg}`);
 
     await twilioClient.messages.create({
@@ -222,6 +280,7 @@ app.post('/sms', async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
+
 
 // 📝 Register Tradie
 app.post('/register', async (req, res) => {
@@ -267,7 +326,7 @@ app.post('/register', async (req, res) => {
 
     // Step 1: Welcome
     await twilioClient.messages.create({
-      body: `⚡️Hi ${name}, I am your very own assistant that never sleeps. Your AI admin is now active.`,
+      body: `⚡️Hi ${name}, I am your very own 24/7✅ assistant that never sleeps. Your AI admin is now active.`,
       from: assistantNumber,
       to: phone,
     });
@@ -335,29 +394,30 @@ app.get('/dashboard', async (req, res) => {
 });
 
 app.post('/call-status', async (req, res) => {
-  const callStatus = req.body.CallStatus; // 'no-answer', 'busy', 'completed', etc.
+  const callStatus = req.body.CallStatus; // 'no-answer', 'busy', etc.
   const fromRaw = req.body.From || '';
   const from = formatPhoneNumber(fromRaw);
-  const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61418723328';
+  const tradieNumber = process.env.TRADIE_PHONE_NUMBER;
 
-  if (callStatus === 'no-answer' || callStatus === 'busy') {
-    const customerMsg = "Hey! Sorry we missed your call. You can book a job, get a quote, or ask a question by replying here. Cheers!";
-    const tradieMsg = `⚠️ Missed call from ${from}. Auto-reply sent.`;
+  if (['no-answer', 'busy'].includes(callStatus)) {
+    const introMsg = INTRO_MESSAGE;
+    const tradieMsg = `⚠️ Missed call from ${from}. Auto‑reply sent.`;
 
     try {
-      await twilioClient.messages.create({
-        body: customerMsg,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: from,
-      });
+      // 1. Send intro SMS to customer
+      await twilioClient.messages.create({ body: introMsg, from: process.env.TWILIO_PHONE_NUMBER, to: from });
+      // 2. Notify tradie
+      await twilioClient.messages.create({ body: tradieMsg, from: process.env.TWILIO_PHONE_NUMBER, to: tradieNumber });
 
-      await twilioClient.messages.create({
-        body: tradieMsg,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: tradieNumber,
-      });
+      // 3. Use DB helpers to flag the intro
+      const customer = await getCustomerByPhone(from);
+      if (!customer) {
+        await saveCustomer({ phone: from, wasIntroduced: true });
+      } else if (!customer.wasIntroduced) {
+        await saveCustomer({ phone: from, wasIntroduced: true });
+      }
     } catch (err) {
-      console.error('Error sending missed call SMS:', err);
+      console.error('Error handling missed call:', err);
     }
   }
 
@@ -384,99 +444,61 @@ app.post('/voice', (req, res) => {
   res.send(response.toString());
 });
 
-
-// 🗣️ Voicemail transcription handler
 app.post('/voicemail', async (req, res) => {
   const transcription = req.body.TranscriptionText || '';
   const fromRaw = req.body.From || '';
-  const from = formatPhoneNumber(fromRaw); // Ensure formatPhoneNumber is defined
-  const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61418723328';
+  const from = formatPhoneNumber(fromRaw);
+  const tradieNumber = process.env.TRADIE_PHONE_NUMBER;
 
   console.log(`🎙️ Voicemail from ${from}: ${transcription}`);
 
   try {
-    // Generate AI reply using OpenAI
-    const completion = await openai.chat.completions.create({
+    const introMsg = INTRO_MESSAGE;
+
+    // 1. Send intro SMS
+    await twilioClient.messages.create({ body: introMsg, from: process.env.TWILIO_PHONE_NUMBER, to: from });
+
+    // 2. Use DB helper to flag introduction
+    const customer = await getCustomerByPhone(from);
+    if (!customer) {
+      await saveCustomer({ phone: from, wasIntroduced: true });
+    } else if (!customer.wasIntroduced) {
+      await saveCustomer({ phone: from, wasIntroduced: true });
+    }
+
+    // 3. Small delay to avoid duplicates
+    await new Promise(r => setTimeout(r, 3000));
+
+    // 4. AI reply generation
+    const { choices } = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: [
-        {
-          role: 'system',
-          content: 'You are a helpful Aussie tradie assistant replying to a voicemail. Keep it short, friendly, and helpful. Offer a callback or a quote.',
-        },
-        {
-          role: 'user',
-          content: transcription,
-        },
+        { role: 'system', content: 'You are a helpful Aussie tradie assistant replying to voicemail...' },
+        { role: 'user', content: transcription },
       ],
     });
-
-    const reply = completion.choices[0].message.content;
+    const reply = choices[0].message.content;
     console.log(`🤖 AI reply: ${reply}`);
 
-    // Send SMS to the customer
-    await twilioClient.messages.create({
-      body: reply,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      to: from,
-    });
+    // 5. Send AI reply to customer
+    await twilioClient.messages.create({ body: reply, from: process.env.TWILIO_PHONE_NUMBER, to: from });
 
-    // Notify tradie
+    // 6. Alert tradie
     await twilioClient.messages.create({
-      body: `🎙️ New voicemail from ${from}: "${transcription}"\n\nAI replied: "${reply}"`,
+      body: `🎙️ Voicemail from ${from}: "${transcription}"\n\nAI replied: "${reply}"`,
       from: process.env.TWILIO_PHONE_NUMBER,
       to: tradieNumber,
     });
 
-    // Optional: log message in local DB
-    await logMessage(from, `Voicemail: ${transcription.slice(0, 500)}`, reply.slice(0, 500));
+    // 7. Log the exchange
+    await logMessage(from, `Voicemail: ${transcription.slice(0,500)}`, reply.slice(0,500));
 
-    res.status(200).send('Voicemail handled');
+    res.status(200).send('Voicemail processed');
   } catch (err) {
-    console.error('❌ Error handling voicemail:', err);
-    res.status(500).send('Failed to handle voicemail');
+    console.error('Error in voicemail handler:', err);
+    res.status(500).send('Voicemail handling failed');
   }
 });
-
-
-
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-
-app.post('/create-checkout-session', async (req, res) => {
-  return res.status(200).json({ url: `${process.env.BASE_URL}/success` });
-
-  /* Stripe logic commented out */
-});
-
-// Schedule daily summary SMS to tradie at 3 PM every day
-cron.schedule(
-  '0 15 * * *',
-  async () => {
-    try {
-      const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61418723328';
-
-      // Get today's bookings/calls/quotes summary text
-      const summary = await getTodaysBookingsSummary();
-
-      if (!summary || summary.trim().length === 0) {
-        console.log('No bookings or calls today, skipping summary SMS.');
-        return;
-      }
-
-      await twilioClient.messages.create({
-        body: `⚡️ Daily summary:\n${summary}`,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: tradieNumber,
-      });
-
-      console.log('Sent daily summary SMS to tradie.');
-    } catch (err) {
-      console.error('Error sending daily summary SMS:', err);
-    }
-  },
-  {
-    timezone: 'Australia/Sydney',
-  }
-);
 
 app.listen(port, () => {
   console.log(`⚡️ AI Apprentice listening on port ${port}`);

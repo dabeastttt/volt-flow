@@ -22,6 +22,9 @@ async function logMessage(phone, incoming, outgoing) {
   return data[0].id;
 }
 
+/**
+ * Register tradie record
+ */
 async function registerTradie(name, business, email, phone) {
   const { data, error } = await supabase
     .from('tradies')
@@ -29,12 +32,11 @@ async function registerTradie(name, business, email, phone) {
 
   if (error) {
     console.error('❌ Supabase insert error:', JSON.stringify(error, null, 2));
-    throw new Error(error.message || 'Unknown Supabase error'); // force a real error
+    throw new Error(error.message || 'Unknown Supabase error');
   }
 
   return data?.[0]?.id;
 }
-
 
 /**
  * Get messages for a phone number (latest first)
@@ -56,6 +58,7 @@ async function getMessagesForPhone(phone, options = {}) {
 
 /**
  * Get a customer by phone number
+ * Automatically reset `wasIntroduced` to false if older than 30 days
  */
 async function getCustomerByPhone(phone) {
   const { data, error } = await supabase
@@ -64,31 +67,45 @@ async function getCustomerByPhone(phone) {
     .eq('phone', phone)
     .single();
 
-  // Supabase returns error if no rows found on .single(), handle gracefully
-  if (error && error.message && error.message.includes('Results contain 0 rows')) {
+  if (error?.message?.includes('Results contain 0 rows')) {
     return null;
   }
   if (error) throw error;
 
-  return data || null;
+  // Normalize nullable wasIntroduced (null => false)
+  const wasIntroduced = data.wasIntroduced ?? false;
+
+  // Reset wasIntroduced if customer record is older than 30 days and wasIntroduced is true
+  const createdAt = new Date(data.created_at);
+  const daysAgo30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+  if (createdAt < daysAgo30 && wasIntroduced) {
+    await saveCustomer({ phone, wasIntroduced: false });
+    return { ...data, wasIntroduced: false };
+  }
+
+  return { ...data, wasIntroduced };
 }
 
 /**
- * Save or update a customer name by phone (upsert)
+ * Save or update a customer (supports partial updates)
  */
-async function saveCustomer({ phone, name }) {
+async function saveCustomer({ phone, name, wasIntroduced }) {
+  const update = { phone };
+  if (name !== undefined) update.name = name;
+  if (wasIntroduced !== undefined) update.wasIntroduced = wasIntroduced;
+
   const { data, error } = await supabase
     .from('customers')
-    .upsert([{ phone, name }], { onConflict: 'phone' });
+    .upsert([update], { onConflict: 'phone' });
 
   if (error) throw error;
 
-  return data;
+  return data?.[0] || null;
 }
 
 /**
- * Generate a summary of today's messages related to bookings
- * Fetch customer names in batch to avoid N+1 queries
+ * Generate a summary of today's bookings-related messages
  */
 async function getTodaysBookingsSummary() {
   const startOfDay = new Date();
@@ -124,10 +141,8 @@ async function getTodaysBookingsSummary() {
 
   if (!rows || rows.length === 0) return '';
 
-  // Extract unique phones from messages
   const uniquePhones = [...new Set(rows.map(row => row.phone))];
 
-  // Batch fetch customer names for those phones
   const { data: customers, error: custError } = await supabase
     .from('customers')
     .select('phone, name')
@@ -138,13 +153,11 @@ async function getTodaysBookingsSummary() {
     return '';
   }
 
-  // Map phones to names for fast lookup
   const phoneToName = {};
-  customers.forEach(cust => {
-    phoneToName[cust.phone] = cust.name;
+  customers.forEach(c => {
+    phoneToName[c.phone] = c.name;
   });
 
-  // Build summary lines with cached names
   const summaryLines = rows.map(row => {
     const name = phoneToName[row.phone] || 'Unknown';
     const time = new Date(row.created_at).toLocaleTimeString();
@@ -163,5 +176,4 @@ module.exports = {
   saveCustomer,
   getTodaysBookingsSummary,
 };
-
 
