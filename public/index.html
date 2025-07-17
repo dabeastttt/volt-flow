@@ -16,7 +16,7 @@ body, html {
   min-height: 100%;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: #001426;
-  color: #d0e7ff;
+  color: #ffff33;
   overflow-x: hidden;
   scroll-behavior: smooth;
 }
@@ -38,7 +38,7 @@ main {
   margin: 3rem auto;
   background: rgba(3, 25, 52, 0.85);
   border-radius: 16px;
-  box-shadow: 0 0 20px #004aadcc;
+  box-shadow: 0 0 20px #ffff3399;
   padding: 2.5rem 3rem;
 }
 
@@ -65,16 +65,16 @@ main {
 .glow-icon {
   width: 120px;
   height: 120px;
-  filter: drop-shadow(0 0 12px #00aaffcc);
+  filter: drop-shadow(0 0 12px #ffff33cc);
   animation: glowPulse 3s ease-in-out infinite;
 }
 
 @keyframes glowPulse {
   0%, 100% {
-    filter: drop-shadow(0 0 8px #00aaffaa);
+    filter: drop-shadow(0 0 8px #ffff33aa);
   }
   50% {
-    filter: drop-shadow(0 0 16px #33bbffcc);
+    filter: drop-shadow(0 0 16px #ffff66cc);
   }
 }
 
@@ -83,8 +83,8 @@ h1 {
   font-size: 2.6rem;
   margin: 0 0 0.6rem;
   text-align: center;
-  color: #00aaff;
-  text-shadow: 0 0 15px #00aaffbb;
+  color: #ffff33;
+  text-shadow: 0 0 15px #ffff33cc;
 }
 
 h2 {
@@ -92,14 +92,14 @@ h2 {
   font-size: 1.15rem;
   margin: 0 0 2rem;
   text-align: center;
-  color: #a0d4ffcc;
+  color: #ffff66cc;
 }
 
 label {
   display: block;
   margin-bottom: 0.4rem;
   font-weight: 600;
-  color: #66bfffcc;
+  color: #ffff66cc;
 }
 
 input[type="text"],
@@ -112,18 +112,18 @@ select {
   border-radius: 10px;
   border: none;
   font-size: 1rem;
-  color: white;
+  color: #ffff33;
   background-color: rgba(5, 25, 52, 0.5);
-  box-shadow: inset 0 2px 6px #00406faa;
+  box-shadow: inset 0 2px 6px #999900aa;
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 input:focus,
 select:focus {
-  background-color: rgba(0, 170, 255, 0.2);
+  background-color: rgba(255, 255, 0, 0.15);
   outline: none;
-  box-shadow: 0 0 15px #00aaffcc;
-  color: white;
+  box-shadow: 0 0 15px #ffff33cc;
+  color: #ffff33;
 }
 
 button {
@@ -131,20 +131,20 @@ button {
   padding: 0.9rem;
   font-size: 1.2rem;
   font-weight: 700;
-  color: #00406f;
-  background: #00aaff;
+  color: #333300;
+  background: #ffff33;
   border: none;
   border-radius: 12px;
   cursor: pointer;
-  box-shadow: 0 6px 18px #00aaffcc;
+  box-shadow: 0 6px 18px #ffff33aa;
   transition: background 0.3s ease, color 0.3s ease;
 }
 
 button:hover,
 button:focus {
-  background: #33bbff;
-  color: #002a49;
-  box-shadow: 0 8px 24px #33bbffdd;
+  background: #ffff66;
+  color: #333300;
+  box-shadow: 0 8px 24px #ffff66cc;
   outline: none;
 }
 
@@ -162,16 +162,15 @@ button:focus {
 
 <main>
   <div class="bolt-wrapper">
-    <!-- Hard Hat SVG Icon -->
     <svg class="glow-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="hatGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#00f0ff" />
-          <stop offset="100%" stop-color="#007acc" />
+          <stop offset="0%" stop-color="#ffff33" />
+          <stop offset="100%" stop-color="#cccc00" />
         </linearGradient>
       </defs>
-      <path d="M32 8c-11 0-20 9-20 20v4c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4v-4c0-11-9-20-20-20z" fill="url(#hatGradient)" stroke="#004a8f" stroke-width="2"/>
-      <path d="M20 36v-4c0-6.6 5.4-12 12-12s12 5.4 12 12v4" fill="none" stroke="#004a8f" stroke-width="2"/>
+      <path d="M32 8c-11 0-20 9-20 20v4c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4v-4c0-11-9-20-20-20z" fill="url(#hatGradient)" stroke="#999900" stroke-width="2"/>
+      <path d="M20 36v-4c0-6.6 5.4-12 12-12s12 5.4 12 12v4" fill="none" stroke="#999900" stroke-width="2"/>
     </svg>
   </div>
 
@@ -227,7 +226,7 @@ function drawMatrix() {
   ctx.fillStyle = 'rgba(0, 20, 50, 0.2)';
   ctx.fillRect(0, 0, width, height);
 
-  ctx.fillStyle = '#00aaff';
+  ctx.fillStyle = '#ffff33';  // Fluoro yellow matrix
   ctx.font = fontSize + 'px monospace';
 
   for (let i = 0; i < columns; i++) {
@@ -238,7 +237,7 @@ function drawMatrix() {
       drops[i] = 0;
     }
 
-    drops[i] += 1;
+    drops[i] += 0.3;
   }
 
   requestAnimationFrame(drawMatrix);
@@ -291,4 +290,5 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
 
 </body>
 </html>
+
 

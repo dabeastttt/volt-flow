@@ -11,7 +11,7 @@
       height: 100vh;
       overflow: hidden;
       background: #001426;
-      color: #00aaff;
+      color: #eaff00;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       display: flex;
       justify-content: center;
@@ -37,8 +37,8 @@
       text-align: center;
       margin: 3rem auto;
       box-shadow:
-        0 0 16px 4px #00aaff66,
-        inset 0 0 10px 2px #00aaff44;
+        0 0 16px 4px #eaff0066,
+        inset 0 0 10px 2px #eaff0044;
     }
 
     .bolt-wrapper {
@@ -64,7 +64,7 @@
     .bolt-svg.glow-icon {
       width: 120px;
       height: 120px;
-      filter: drop-shadow(0 0 12px #00aaffcc);
+      filter: drop-shadow(0 0 12px #eaff00cc);
       animation: glowPulse 3s ease-in-out infinite;
       display: block;
       margin: 0 auto 1rem;
@@ -72,10 +72,10 @@
 
     @keyframes glowPulse {
       0%, 100% {
-        filter: drop-shadow(0 0 8px #00aaffaa);
+        filter: drop-shadow(0 0 8px #eaff00aa);
       }
       50% {
-        filter: drop-shadow(0 0 16px #33bbffcc);
+        filter: drop-shadow(0 0 16px #ccff00cc);
       }
     }
 
@@ -83,30 +83,30 @@
       font-size: 2.8rem;
       font-weight: 900;
       margin: 0.5rem 0 1rem;
-      text-shadow: 0 0 15px #00aaffbb;
+      text-shadow: 0 0 15px #eaff00bb;
     }
 
     p {
       font-size: 1.25rem;
       margin-bottom: 2rem;
-      color: #a0d4ffcc;
+      color: #faffbccc;
     }
 
     a {
       text-decoration: none;
-      color: #00406f;
-      background: #00aaff;
+      color: #001200;
+      background: #eaff00;
       padding: 12px 25px;
       font-weight: 700;
       border-radius: 12px;
-      box-shadow: 0 6px 18px #00aaffcc;
+      box-shadow: 0 6px 18px #eaff00cc;
       transition: background 0.3s ease, color 0.3s ease;
     }
 
     a:hover, a:focus {
-      background: #33bbff;
-      color: #002a49;
-      box-shadow: 0 8px 24px #33bbffdd;
+      background: #f6ff33;
+      color: #001200;
+      box-shadow: 0 8px 24px #f6ff33dd;
       outline: none;
     }
   </style>
@@ -120,14 +120,13 @@
     <svg class="bolt-svg glow-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="helmetGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#00f0ff"/>
-          <stop offset="100%" stop-color="#007acc"/>
+          <stop offset="0%" stop-color="#f7ff00"/>
+          <stop offset="100%" stop-color="#d4ff00"/>
         </linearGradient>
       </defs>
-      <!-- Hard hat icon -->
-      <path d="M32 12c-11 0-20 9-20 20v5h40v-5c0-11-9-20-20-20z" fill="url(#helmetGradient)" stroke="#004a8f" stroke-width="2"/>
-      <path d="M24 12v6m8-6v6m8-6v6" stroke="#004a8f" stroke-width="2" />
-      <rect x="12" y="37" width="40" height="5" rx="2.5" fill="#004a8f" />
+      <path d="M32 12c-11 0-20 9-20 20v5h40v-5c0-11-9-20-20-20z" fill="url(#helmetGradient)" stroke="#b4c800" stroke-width="2"/>
+      <path d="M24 12v6m8-6v6m8-6v6" stroke="#b4c800" stroke-width="2" />
+      <rect x="12" y="37" width="40" height="5" rx="2.5" fill="#b4c800" />
     </svg>
   </div>
 
@@ -159,7 +158,7 @@
     ctx.fillStyle = 'rgba(0, 20, 50, 0.2)';
     ctx.fillRect(0, 0, width, height);
 
-    ctx.fillStyle = '#00aaff';
+    ctx.fillStyle = '#eaff00';
     ctx.font = `${fontSize}px monospace`;
 
     for (let i = 0; i < drops.length; i++) {
@@ -186,3 +185,4 @@
 
 </body>
 </html>
+
