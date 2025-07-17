@@ -216,7 +216,7 @@ let width, height;
 const fontSize = 16;
 let columns;
 const letters = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズヅブプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴンABDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-let drops = [0.17];
+let drops = [0];
 
 function resize() {
   width = window.innerWidth;
@@ -225,7 +225,7 @@ function resize() {
   canvas.height = height;
 
   columns = Math.floor(width / fontSize);
-  drops = [];
+  drops = [0.1];
   for (let i = 0; i < columns; i++) {
     drops[i] = Math.random() * height / fontSize;
   }
