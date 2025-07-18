@@ -73,16 +73,6 @@ const limiter = rateLimit({
 });
 app.use('/sms', limiter);
 
-const express = require('express');
-const app = express();
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
-
-const twilioClient = require('./twilioClient'); // assumes you’ve configured your client in a separate module
-const openai = require('./openaiClient'); // assumes OpenAI SDK configured
-const { saveCustomer, getCustomerByPhone, getTradieType, getMessagesForPhone, logMessage } = require('./db'); // Your DB helpers
-const { formatPhoneNumber, isLowIntentMessage } = require('./utils'); // Custom utils
-
 const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61406435844';
 const callbackTime = '4 pm';
 
