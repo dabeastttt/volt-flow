@@ -268,7 +268,7 @@ app.post('/register', async (req, res) => {
   console.log('➡️ Incoming /register request');
   console.log('📦 Request body:', req.body);
 
-  const { name, business, email, phone: phoneRaw } = req.body;
+  const { name, business, email, phoneRaw } = req.body;
 
   if (!name || !business || !email || !phoneRaw) {
     console.log('❌ Missing required fields:', { name, business, email, phoneRaw });
