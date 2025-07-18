@@ -308,8 +308,9 @@ app.post('/register', async (req, res) => {
 
     console.log(`✅ Onboarding SMS sent to ${phone}`);
 
-    // ✅ Only redirect after all async tasks finish
-    res.redirect('/success.html');
+  // ✅ Send success response (not redirect)
+    res.status(200).json({ success: true });
+
   } catch (err) {
     console.error('DB error:', err?.message || JSON.stringify(err, null, 2));
     if (err && typeof err === 'object') {

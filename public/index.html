@@ -286,18 +286,8 @@
 
       if (!res.ok) throw new Error();
 
-      const stripeRes = await fetch('/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: data.planSelect })
-      });
+      window.location.href = '/success.html';
 
-      const session = await stripeRes.json();
-      if (session.url) {
-        window.location.href = session.url;
-      } else {
-        alert("Error launching Stripe checkout.");
-      }
     } catch {
       alert("Oops, something went wrong. Try again later.");
       form.querySelectorAll('input, button, select').forEach(el => el.disabled = false);
