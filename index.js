@@ -263,12 +263,13 @@ async function handleWithAI(incomingMsgRaw, sender, res) {
     res.status(500).send('Internal Server Error');
   }
 }
-
-// 📝 Register Tradie
+//tradie register
 app.post('/register', async (req, res) => {
   const { name, business, email, phone: phoneRaw } = req.body;
+  console.log('Incoming /register request:', req.body);
 
   if (!name || !business || !email || !phoneRaw) {
+    console.log('Missing required fields');
     return res.status(400).send('Missing required fields');
   }
 
@@ -281,13 +282,19 @@ app.post('/register', async (req, res) => {
   }
 
   const phone = formatPhoneNumber(phoneRaw);
+  console.log('Formatted phone:', phone);
 
   try {
     await registerTradie(name, business, email, phone);
     console.log(`✅ Registered: ${name} (${phone})`);
 
     const assistantNumber = process.env.TWILIO_PHONE_NUMBER;
+    if (!assistantNumber) {
+      console.error('TWILIO_PHONE_NUMBER not set in env!');
+      return res.status(500).send('Server config error');
+    }
 
+    // Send onboarding SMSs
     await twilioClient.messages.create({
       body: `⚡️Hi ${name}, I am your very own 24/7✅ assistant that never sleeps. Your AI admin is now active.`,
       from: assistantNumber,
@@ -308,17 +315,15 @@ app.post('/register', async (req, res) => {
 
     console.log(`✅ Onboarding SMS sent to ${phone}`);
 
-  // ✅ Send success response (not redirect)
+    // Success response
     res.status(200).json({ success: true });
 
   } catch (err) {
-    console.error('DB error:', err?.message || JSON.stringify(err, null, 2));
-    if (err && typeof err === 'object') {
-      console.error('📄 Full error details:', JSON.stringify(err, null, 2));
-    }
+    console.error('Error in /register:', err);
     res.status(500).send('Something went wrong');
   }
 });
+
 
 // 📊 View dashboard (basic HTML)
 app.get('/dashboard', async (req, res) => {

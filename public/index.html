@@ -270,31 +270,47 @@
       return;
     }
 
-    form.querySelectorAll('input, button, select').forEach(el => el.disabled = true);
-    form.style.opacity = 0.4;
-    loadingScreen.style.display = 'block';
+  form.addEventListener('submit', async (e) => {
+  e.preventDefault();
 
-    const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
+  if (!form.checkValidity()) {
+    form.reportValidity();
+    return;
+  }
 
-    try {
-      const res = await fetch('/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
+  form.querySelectorAll('input, button, select').forEach(el => el.disabled = true);
+  form.style.opacity = 0.4;
+  loadingScreen.style.display = 'block';
 
-      if (!res.ok) throw new Error();
+  const formData = new FormData(form);
+  const data = Object.fromEntries(formData.entries());
 
-      window.location.href = '/success.html';
+  try {
+    console.log('Sending /register with:', data);
 
-    } catch {
-      alert("Oops, something went wrong. Try again later.");
-      form.querySelectorAll('input, button, select').forEach(el => el.disabled = false);
-      form.style.opacity = 1;
-      loadingScreen.style.display = 'none';
-    }
-  });
+    const res = await fetch('/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    const text = await res.text();
+    console.log('Response status:', res.status);
+    console.log('Response body:', text);
+
+    if (!res.ok) throw new Error(`Status ${res.status}`);
+
+    window.location.href = '/success.html';
+
+  } catch (error) {
+    console.error('Submit error:', error);
+    alert("Oops, something went wrong. Try again later.");
+    form.querySelectorAll('input, button, select').forEach(el => el.disabled = false);
+    form.style.opacity = 1;
+    loadingScreen.style.display = 'none';
+  }
+});
+
 </script>
 
 </body>
