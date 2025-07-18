@@ -274,25 +274,9 @@ app.post('/register', async (req, res) => {
 
   function formatPhoneNumber(raw) {
     if (!raw || typeof raw !== 'string') return null;
-
-    // Remove spaces, parentheses, dashes
     let cleaned = raw.replace(/[\s\-()]/g, '');
-
-    // If starts with '+', assume international format already
-    if (cleaned.startsWith('+')) {
-      if (!cleaned.startsWith('+61')) {
-        // Optionally reject or handle other country codes here
-        return cleaned;
-      }
-      return cleaned;
-    }
-
-    // If starts with 0 (local format), convert to +61
-    if (cleaned.startsWith('0')) {
-      return '+61' + cleaned.slice(1);
-    }
-
-    // Otherwise, add +61 prefix
+    if (cleaned.startsWith('+')) return cleaned;
+    if (cleaned.startsWith('0')) return '+61' + cleaned.slice(1);
     return '+61' + cleaned;
   }
 
@@ -302,25 +286,20 @@ app.post('/register', async (req, res) => {
     await registerTradie(name, business, email, phone);
     console.log(`✅ Registered: ${name} (${phone})`);
 
-    res.redirect('/success.html');
-
     const assistantNumber = process.env.TWILIO_PHONE_NUMBER;
 
-    // Step 1: Welcome
     await twilioClient.messages.create({
       body: `⚡️Hi ${name}, I am your very own 24/7✅ assistant that never sleeps. Your AI admin is now active.`,
       from: assistantNumber,
       to: phone,
     });
 
-    // Step 2: Forwarding instructions
     await twilioClient.messages.create({
-      body: `📲 Please forward your main mobile number to this AI number (${assistantNumber}) so we can handle missed calls for you. On iPhone/Android, just go to Phone > Settings > Call Forwarding.`,
+      body: `📲 Please forward your main mobile number to this AI number (${assistantNumber}) so we can handle missed calls for you.`,
       from: assistantNumber,
       to: phone,
     });
 
-    // Step 3: Optional tip
     await twilioClient.messages.create({
       body: `Tip: Set forwarding to "When Busy" or "When Unanswered" so we only step in when you're away. You're all set ⚡️`,
       from: assistantNumber,
@@ -328,6 +307,9 @@ app.post('/register', async (req, res) => {
     });
 
     console.log(`✅ Onboarding SMS sent to ${phone}`);
+
+    // ✅ Only redirect after all async tasks finish
+    res.redirect('/success.html');
   } catch (err) {
     console.error('DB error:', err?.message || JSON.stringify(err, null, 2));
     if (err && typeof err === 'object') {

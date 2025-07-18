@@ -1,160 +1,175 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>TradeAssist A.I Signup</title>
-<script src="https://js.stripe.com/v3/"></script>
-<style>
-* {
-  box-sizing: border-box;
-}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TradeAssist A.I Signup</title>
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-body, html {
-  margin: 0;
-  padding: 0;
-  min-height: 100%;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #001426;
-  color: #ffff33;
-  overflow-x: hidden;
-  scroll-behavior: smooth;
-}
+    body, html {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #001426;
+      color: #ffff33;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
 
-#matrixCanvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  background: #001426;
-}
+    #matrixCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      background: #001426;
+    }
 
-main {
-  position: relative;
-  z-index: 10;
-  max-width: 440px;
-  margin: 3rem auto;
-  background: rgba(3, 25, 52, 0.85);
-  border-radius: 16px;
-  box-shadow: 0 0 20px #ffff3399;
-  padding: 2.5rem 3rem;
-}
+    main {
+      position: relative;
+      z-index: 10;
+      max-width: 440px;
+      margin: 3rem auto;
+      background: rgba(3, 25, 52, 0.85);
+      border-radius: 16px;
+      box-shadow: 0 0 20px #ffff3399;
+      padding: 2.5rem 3rem;
+    }
 
-.bolt-wrapper {
-  display: flex;
-  justify-content: center;
-  animation: slideToCenter 1.8s ease-out forwards;
-  transform: translateX(100%);
-  opacity: 0;
-  margin-bottom: 1.5rem;
-}
+    .bolt-wrapper {
+      display: flex;
+      justify-content: center;
+      animation: slideToCenter 1.8s ease-out forwards;
+      transform: translateX(100%);
+      opacity: 0;
+      margin-bottom: 1.5rem;
+    }
 
-@keyframes slideToCenter {
-  0% {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  100% {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
+    @keyframes slideToCenter {
+      0% {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      100% {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
 
-.glow-icon {
-  width: 120px;
-  height: 120px;
-  filter: drop-shadow(0 0 12px #ffff33cc);
-  animation: glowPulse 3s ease-in-out infinite;
-}
+    .glow-icon {
+      width: 120px;
+      height: 120px;
+      filter: drop-shadow(0 0 12px #ffff33cc);
+      animation: glowPulse 3s ease-in-out infinite;
+    }
 
-@keyframes glowPulse {
-  0%, 100% {
-    filter: drop-shadow(0 0 8px #ffff33aa);
-  }
-  50% {
-    filter: drop-shadow(0 0 16px #ffff66cc);
-  }
-}
+    @keyframes glowPulse {
+      0%, 100% {
+        filter: drop-shadow(0 0 8px #ffff33aa);
+      }
+      50% {
+        filter: drop-shadow(0 0 16px #ffff66cc);
+      }
+    }
 
-h1 {
-  font-weight: 900;
-  font-size: 2.6rem;
-  margin: 0 0 0.6rem;
-  text-align: center;
-  color: #ffff33;
-  text-shadow: 0 0 15px #ffff33cc;
-}
+    h1 {
+      font-weight: 900;
+      font-size: 2.6rem;
+      margin: 0 0 0.6rem;
+      text-align: center;
+      color: #ffff33;
+      text-shadow: 0 0 15px #ffff33cc;
+    }
 
-h2 {
-  font-weight: 400;
-  font-size: 1.15rem;
-  margin: 0 0 2rem;
-  text-align: center;
-  color: #ffff66cc;
-}
+    h2 {
+      font-weight: 400;
+      font-size: 1.15rem;
+      margin: 0 0 2rem;
+      text-align: center;
+      color: #ffff66cc;
+    }
 
-label {
-  display: block;
-  margin-bottom: 0.4rem;
-  font-weight: 600;
-  color: #ffff66cc;
-}
+    label {
+      display: block;
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+      color: #ffff66cc;
+    }
 
-input[type="text"],
-input[type="email"],
-input[type="tel"],
-select {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  margin-bottom: 1.5rem;
-  border-radius: 10px;
-  border: none;
-  font-size: 1rem;
-  color: #ffff33;
-  background-color: rgba(5, 25, 52, 0.5);
-  box-shadow: inset 0 2px 6px #999900aa;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-}
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1.5rem;
+      border-radius: 10px;
+      border: none;
+      font-size: 1rem;
+      color: #ffff33;
+      background-color: rgba(5, 25, 52, 0.5);
+      box-shadow: inset 0 2px 6px #999900aa;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
 
-input:focus,
-select:focus {
-  background-color: rgba(255, 255, 0, 0.15);
-  outline: none;
-  box-shadow: 0 0 15px #ffff33cc;
-  color: #ffff33;
-}
+    input:focus,
+    select:focus {
+      background-color: rgba(255, 255, 0, 0.15);
+      outline: none;
+      box-shadow: 0 0 15px #ffff33cc;
+      color: #ffff33;
+    }
 
-button {
-  width: 100%;
-  padding: 0.9rem;
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #333300;
-  background: #ffff33;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  box-shadow: 0 6px 18px #ffff33aa;
-  transition: background 0.3s ease, color 0.3s ease;
-}
+    button {
+      width: 100%;
+      padding: 0.9rem;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #333300;
+      background: #ffff33;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 6px 18px #ffff33aa;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
 
-button:hover,
-button:focus {
-  background: #ffff66;
-  color: #333300;
-  box-shadow: 0 8px 24px #ffff66cc;
-  outline: none;
-}
+    button:hover,
+    button:focus {
+      background: #ffff66;
+      color: #333300;
+      box-shadow: 0 8px 24px #ffff66cc;
+      outline: none;
+    }
 
-@media (max-width: 480px) {
-  main {
-    margin: 2rem 1rem;
-    padding: 2rem 1.5rem;
-  }
-}
-</style>
+    @media (max-width: 480px) {
+      main {
+        margin: 2rem 1rem;
+        padding: 2rem 1.5rem;
+      }
+    }
+
+    #loadingScreen {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 9999;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 20, 38, 0.95);
+      color: #ffff33;
+      font-size: 2rem;
+      text-align: center;
+      padding-top: 30vh;
+    }
+  </style>
 </head>
 <body>
 
@@ -200,92 +215,96 @@ button:focus {
   </form>
 </main>
 
+<div id="loadingScreen">Onboarding your AI Receptionist...</div>
+
 <script>
-const canvas = document.getElementById('matrixCanvas');
-const ctx = canvas.getContext('2d');
-let width, height, columns;
-const fontSize = 16;
-let drops = [];
+  const canvas = document.getElementById('matrixCanvas');
+  const ctx = canvas.getContext('2d');
+  const fontSize = 16;
+  let columns, drops;
 
-const letters = 'アァカサタナハマヤラ0123456789$#%@&*!ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const letters = 'アァカサタナハマヤラ0123456789$#%@&*!ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-function resizeCanvas() {
-  width = window.innerWidth;
-  height = window.innerHeight;
-  canvas.width = width;
-  canvas.height = height;
+  function initMatrix() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-  columns = Math.floor(width / fontSize);
-  drops = [];
-  for (let i = 0; i < columns; i++) {
-    drops[i] = Math.random() * height / fontSize;
+    columns = Math.floor(canvas.width / fontSize);
+    drops = Array(columns).fill(1);
   }
-}
 
-function drawMatrix() {
-  ctx.fillStyle = 'rgba(0, 20, 50, 0.2)';
-  ctx.fillRect(0, 0, width, height);
+  function drawMatrix() {
+    ctx.fillStyle = 'rgba(0, 20, 50, 0.2)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  ctx.fillStyle = '#ffff33';  // Fluoro yellow matrix
-  ctx.font = fontSize + 'px monospace';
+    ctx.fillStyle = '#ffff33';
+    ctx.font = fontSize + 'px monospace';
 
-  for (let i = 0; i < columns; i++) {
-    const text = letters.charAt(Math.floor(Math.random() * letters.length));
-    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+    for (let i = 0; i < columns; i++) {
+      const char = letters.charAt(Math.floor(Math.random() * letters.length));
+      ctx.fillText(char, i * fontSize, drops[i] * fontSize);
 
-    if (drops[i] * fontSize > height && Math.random() > 0.975) {
-      drops[i] = 0;
+      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+        drops[i] = 0;
+      }
+      drops[i]++;
     }
 
-    drops[i] += 0.3;
+    requestAnimationFrame(drawMatrix);
   }
 
-  requestAnimationFrame(drawMatrix);
-}
+  window.addEventListener('resize', initMatrix);
+  initMatrix();
+  drawMatrix();
+</script>
 
-resizeCanvas();
-drawMatrix();
-window.addEventListener('resize', resizeCanvas);
+<script>
+  const form = document.getElementById('signupForm');
+  const loadingScreen = document.getElementById('loadingScreen');
 
-// Form Submission
-document.getElementById('signupForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const form = e.target;
-  if (!form.checkValidity()) {
-    form.reportValidity();
-    return;
-  }
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-  const formData = new FormData(form);
-  const data = Object.fromEntries(formData.entries());
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
 
-  try {
-    const response = await fetch('/register', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(data)
-    });
+    form.querySelectorAll('input, button, select').forEach(el => el.disabled = true);
+    form.style.opacity = 0.4;
+    loadingScreen.style.display = 'block';
 
-    if (response.ok) {
-      const stripeSession = await fetch('/create-checkout-session', {
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+      const res = await fetch('/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (!res.ok) throw new Error();
+
+      const stripeRes = await fetch('/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan: data.planSelect })
       });
 
-      const session = await stripeSession.json();
+      const session = await stripeRes.json();
       if (session.url) {
         window.location.href = session.url;
       } else {
         alert("Error launching Stripe checkout.");
       }
-    } else {
-      alert("Oops, something went wrong. Please try again.");
+    } catch {
+      alert("Oops, something went wrong. Try again later.");
+      form.querySelectorAll('input, button, select').forEach(el => el.disabled = false);
+      form.style.opacity = 1;
+      loadingScreen.style.display = 'none';
     }
-  } catch (error) {
-    alert("Network error. Please check your connection.");
-  }
-});
+  });
 </script>
 
 </body>

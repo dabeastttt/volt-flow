@@ -65,12 +65,11 @@ async function getCustomerByPhone(phone) {
     .from('customers')
     .select('*')
     .eq('phone', phone)
-    .single();
+    .maybeSingle(); // ✅ allows zero or one row
 
-  if (error?.message?.includes('Results contain 0 rows')) {
-    return null;
-  }
   if (error) throw error;
+if (!data) return null;
+
 
   // Normalize nullable wasIntroduced (null => false)
   const wasIntroduced = data.wasIntroduced ?? false;
