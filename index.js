@@ -265,11 +265,13 @@ async function handleWithAI(incomingMsgRaw, sender, res) {
 }
 //tradie register
 app.post('/register', async (req, res) => {
+  console.log('➡️ Incoming /register request');
+  console.log('📦 Request body:', req.body);
+
   const { name, business, email, phone: phoneRaw } = req.body;
-  console.log('Incoming /register request:', req.body);
 
   if (!name || !business || !email || !phoneRaw) {
-    console.log('Missing required fields');
+    console.log('❌ Missing required fields:', { name, business, email, phoneRaw });
     return res.status(400).send('Missing required fields');
   }
 
@@ -282,45 +284,51 @@ app.post('/register', async (req, res) => {
   }
 
   const phone = formatPhoneNumber(phoneRaw);
-  console.log('Formatted phone:', phone);
+  console.log('📱 Formatted phone:', phone);
 
   try {
+    console.log('🧠 Calling registerTradie...');
     await registerTradie(name, business, email, phone);
-    console.log(`✅ Registered: ${name} (${phone})`);
+    console.log(`✅ Registered tradie: ${name} (${phone})`);
 
     const assistantNumber = process.env.TWILIO_PHONE_NUMBER;
     if (!assistantNumber) {
-      console.error('TWILIO_PHONE_NUMBER not set in env!');
-      return res.status(500).send('Server config error');
+      console.error('❌ TWILIO_PHONE_NUMBER is not set in environment variables');
+      return res.status(500).send('Server config error: Twilio number missing');
     }
+    console.log('📞 Twilio assistant number:', assistantNumber);
 
     // Send onboarding SMSs
-    await twilioClient.messages.create({
+    const sms1 = await twilioClient.messages.create({
       body: `⚡️Hi ${name}, I am your very own 24/7✅ assistant that never sleeps. Your AI admin is now active.`,
       from: assistantNumber,
       to: phone,
     });
+    console.log('📤 SMS 1 sent:', sms1.sid);
 
-    await twilioClient.messages.create({
+    const sms2 = await twilioClient.messages.create({
       body: `📲 Please forward your main mobile number to this AI number (${assistantNumber}) so we can handle missed calls for you.`,
       from: assistantNumber,
       to: phone,
     });
+    console.log('📤 SMS 2 sent:', sms2.sid);
 
-    await twilioClient.messages.create({
+    const sms3 = await twilioClient.messages.create({
       body: `Tip: Set forwarding to "When Busy" or "When Unanswered" so we only step in when you're away. You're all set ⚡️`,
       from: assistantNumber,
       to: phone,
     });
+    console.log('📤 SMS 3 sent:', sms3.sid);
 
-    console.log(`✅ Onboarding SMS sent to ${phone}`);
+    console.log(`✅ All onboarding SMS sent to ${phone}`);
 
-    // Success response
-    res.status(200).json({ success: true });
+    // Success
+    return res.status(200).json({ success: true });
 
   } catch (err) {
-    console.error('Error in /register:', err);
-    res.status(500).send('Something went wrong');
+    console.error('❗ Error in /register route:', err.message || err);
+    if (err.stack) console.error(err.stack);
+    return res.status(500).send('Something went wrong');
   }
 });
 

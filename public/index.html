@@ -247,7 +247,7 @@
       if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
         drops[i] = 0;
       }
-      drops[i]++;
+      drops[i] += 0.3;
     }
 
     requestAnimationFrame(drawMatrix);
@@ -270,47 +270,39 @@
       return;
     }
 
-  form.addEventListener('submit', async (e) => {
-  e.preventDefault();
+    form.querySelectorAll('input, button, select').forEach(el => el.disabled = true);
+    form.style.opacity = 0.4;
+    loadingScreen.style.display = 'block';
 
-  if (!form.checkValidity()) {
-    form.reportValidity();
-    return;
-  }
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
 
-  form.querySelectorAll('input, button, select').forEach(el => el.disabled = true);
-  form.style.opacity = 0.4;
-  loadingScreen.style.display = 'block';
+    try {
+      console.log('Sending /register with:', data);
 
-  const formData = new FormData(form);
-  const data = Object.fromEntries(formData.entries());
+      const res = await fetch('/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
 
-  try {
-    console.log('Sending /register with:', data);
+      const text = await res.text();
+      console.log('Response status:', res.status);
+      console.log('Response body:', text);
 
-    const res = await fetch('/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
+      if (!res.ok) throw new Error(`Status ${res.status}`);
 
-    const text = await res.text();
-    console.log('Response status:', res.status);
-    console.log('Response body:', text);
+      console.log('✅ Registration successful, redirecting to success.html...');
+      window.location.href = '/success.html';
 
-    if (!res.ok) throw new Error(`Status ${res.status}`);
-
-    window.location.href = '/success.html';
-
-  } catch (error) {
-    console.error('Submit error:', error);
-    alert("Oops, something went wrong. Try again later.");
-    form.querySelectorAll('input, button, select').forEach(el => el.disabled = false);
-    form.style.opacity = 1;
-    loadingScreen.style.display = 'none';
-  }
-});
-
+    } catch (error) {
+      console.error('Submit error:', error);
+      alert("Oops, something went wrong. Try again later.");
+      form.querySelectorAll('input, button, select').forEach(el => el.disabled = false);
+      form.style.opacity = 1;
+      loadingScreen.style.display = 'none';
+    }
+  });
 </script>
 
 </body>

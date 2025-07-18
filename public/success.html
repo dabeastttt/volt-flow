@@ -39,6 +39,16 @@
       box-shadow:
         0 0 16px 4px #eaff0066,
         inset 0 0 10px 2px #eaff0044;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 1s ease forwards 0.4s;
+    }
+
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .bolt-wrapper {
@@ -132,10 +142,12 @@
 
   <h1>Success!</h1>
   <p>Your 24/7 Receptionist is now activated.<br>Ready to simplify your daily tasks and save you time!</p>
-  <a href="/">Back to Home</a>
+  <a href="/#signupForm">Back to Home</a>
 </div>
 
 <script>
+  console.log("✅ Success page loaded – user onboarded.");
+
   const canvas = document.getElementById('matrixCanvas');
   const ctx = canvas.getContext('2d');
 
@@ -185,4 +197,5 @@
 
 </body>
 </html>
+
 
