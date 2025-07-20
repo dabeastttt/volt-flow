@@ -363,46 +363,155 @@ app.get('/dashboard', async (req, res) => {
       .order('created_at', { ascending: false });
 
     const html = `
-      <html>
-        <head>
-          <title>TradeAssist A.I Dashboard</title>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 2rem; background: #f5f5f5; }
-            h2 { color: #003355; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
-            th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-            th { background: #003355; color: white; }
-            audio { width: 100%; }
-          </style>
-        </head>
-        <body>
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>TradeAssist A.I Dashboard</title>
+        <style>
+          body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #001426;
+            color: #ffff33;
+            overflow-x: hidden;
+          }
+
+          #matrixCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            background: #001426;
+          }
+
+          main {
+            position: relative;
+            z-index: 10;
+            max-width: 960px;
+            margin: 4rem auto;
+            background: rgba(3, 25, 52, 0.85);
+            border-radius: 16px;
+            box-shadow: 0 0 20px #ffff3399;
+            padding: 2rem 3rem;
+          }
+
+          h2 {
+            color: #ffff33;
+            text-align: center;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 10px #ffff66aa;
+          }
+
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+          }
+
+          th, td {
+            border: 1px solid #999900;
+            padding: 8px;
+            text-align: left;
+            color: #ffff99;
+          }
+
+          th {
+            background: #002233;
+            color: #ffff33;
+          }
+
+          audio {
+            width: 100%;
+          }
+
+          tr:nth-child(even) {
+            background-color: rgba(255, 255, 0, 0.05);
+          }
+
+          @media (max-width: 600px) {
+            main {
+              padding: 1.5rem;
+              margin: 2rem 1rem;
+            }
+            table, th, td {
+              font-size: 0.85rem;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <canvas id="matrixCanvas"></canvas>
+
+        <main>
           <h2>📨 Message History for ${phone}</h2>
           <table>
             <tr><th>Time</th><th>Incoming</th><th>Reply</th></tr>
-            ${messages
-              ?.map(
-                (msg) =>
-                  `<tr><td>${msg.created_at}</td><td>${msg.incoming}</td><td>${msg.outgoing}</td></tr>`
-              )
-              .join('') || '<tr><td colspan="3">No messages found.</td></tr>'}
+            ${messages?.map(
+              (msg) =>
+                `<tr><td>${msg.created_at}</td><td>${msg.incoming}</td><td>${msg.outgoing}</td></tr>`
+            ).join('') || '<tr><td colspan="3">No messages found.</td></tr>'}
           </table>
 
           <h2>🎧 Voicemail Log</h2>
           <table>
             <tr><th>Time</th><th>Audio</th><th>Transcript</th><th>AI Reply</th></tr>
-            ${voicemails
-              ?.map(
-                (vm) =>
-                  `<tr>
-                    <td>${vm.created_at}</td>
-                    <td>${vm.recording_url ? `<audio controls src="${vm.recording_url}"></audio>` : 'No audio'}</td>
-                    <td>${vm.transcription || '—'}</td>
-                    <td>${vm.ai_reply || '—'}</td>
-                  </tr>`
-              )
-              .join('') || '<tr><td colspan="4">No voicemails found.</td></tr>'}
+            ${voicemails?.map(
+              (vm) =>
+                `<tr>
+                  <td>${vm.created_at}</td>
+                  <td>${vm.recording_url ? `<audio controls src="${vm.recording_url}"></audio>` : 'No audio'}</td>
+                  <td>${vm.transcription || '—'}</td>
+                  <td>${vm.ai_reply || '—'}</td>
+                </tr>`
+            ).join('') || '<tr><td colspan="4">No voicemails found.</td></tr>'}
           </table>
-        </body>
+        </main>
+
+        <script>
+          const canvas = document.getElementById('matrixCanvas');
+          const ctx = canvas.getContext('2d');
+          const fontSize = 16;
+          let columns, drops;
+
+          const letters = 'アァカサタナハマヤラ0123456789$#%@&*!ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+          function initMatrix() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            columns = Math.floor(canvas.width / fontSize);
+            drops = Array(columns).fill(1);
+          }
+
+          function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 20, 50, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#ffff33';
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < columns; i++) {
+              const char = letters.charAt(Math.floor(Math.random() * letters.length));
+              ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+
+              if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                drops[i] = 0;
+              }
+              drops[i] += 0.3;
+            }
+
+            requestAnimationFrame(drawMatrix);
+          }
+
+          window.addEventListener('resize', initMatrix);
+          initMatrix();
+          drawMatrix();
+        </script>
+      </body>
       </html>
     `;
 
