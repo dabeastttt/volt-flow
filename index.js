@@ -533,8 +533,14 @@ app.get('/dashboard', async (req, res) => {
   </html>
 `;
 
-  res.send(html);
-}); 
+   // Send the HTML response
+    res.send(html);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal server error');
+  }
+});
 
 //call back
 app.post('/call-status', async (req, res) => {
