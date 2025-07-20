@@ -5,6 +5,7 @@ const { OpenAI } = require('openai');
 const twilio = require('twilio');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const { saveVoicemail } = require('./db');
 const {
   logMessage,
   getMessagesForPhone,
@@ -73,7 +74,7 @@ const limiter = rateLimit({
 });
 app.use('/sms', limiter);
 
-const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61412586083';
+const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61414855294';
 const callbackTime = '4 pm';
 
 // MAIN SMS INBOUND HANDLER
@@ -500,9 +501,13 @@ app.post('/voicemail', async (req, res) => {
     });
     console.log(`✅ Alerted tradie at ${tradieNumber}`);
 
-    // 7. Log the exchange
+    // 7. Log to messages (existing)
     await logMessage(from, `Voicemail: ${transcription.slice(0, 500)}`, reply.slice(0, 500));
     console.log(`📦 Logged message to DB`);
+
+    // 8. Save voicemail record
+    await saveVoicemail({ phone: from, transcription, ai_reply: reply });
+    console.log('💾 Voicemail saved to Supabase');
 
     return res.status(200).send('Voicemail processed');
   } catch (err) {
@@ -511,8 +516,8 @@ app.post('/voicemail', async (req, res) => {
   }
 });
 
+// Your app listen block, outside the route handlers:
+const port = process.env.PORT || 10000;
 app.listen(port, () => {
   console.log(`🚀 Server running on port ${port}`);
 });
-
-

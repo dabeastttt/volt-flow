@@ -167,6 +167,26 @@ async function getTodaysBookingsSummary() {
   return summaryLines.join('\n');
 }
 
+/**
+ * Save a voicemail log
+ */
+async function saveVoicemail({ phone, transcription, ai_reply }) {
+  const safeTranscription = transcription ? transcription.slice(0, 1000) : null;
+  const safeReply = ai_reply ? ai_reply.slice(0, 1000) : null;
+
+  const { data, error } = await supabase
+    .from('voicemails')
+    .insert([{ phone, transcription: safeTranscription, ai_reply: safeReply }]);
+
+  if (error) {
+    console.error('❌ Error inserting voicemail into Supabase:', error.message);
+    throw error;
+  }
+
+  return data?.[0]?.id || null;
+}
+
+
 module.exports = {
   logMessage,
   registerTradie,
@@ -174,5 +194,6 @@ module.exports = {
   getCustomerByPhone,
   saveCustomer,
   getTodaysBookingsSummary,
+  saveVoicemail, 
 };
 
