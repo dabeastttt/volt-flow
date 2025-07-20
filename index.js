@@ -519,7 +519,7 @@ app.get('/dashboard', async (req, res) => {
           if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
             drops[i] = 0;
           }
-          drops[i] += 0.3;
+          drops[i] += 1.5;
         }
 
         requestAnimationFrame(drawMatrix);
