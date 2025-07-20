@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -16,7 +16,7 @@
       min-height: 100%;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: #0A0A0A;
-      color: #FF6B00;
+      color: #FFFFFF;
       overflow-x: hidden;
       scroll-behavior: smooth;
     }
@@ -28,7 +28,7 @@
       width: 100%;
       height: 100%;
       z-index: 0;
-      background: #001426;
+      background: #0A0A0A; /* ✅ Fixed */
     }
 
     main {
@@ -36,7 +36,7 @@
       z-index: 10;
       max-width: 440px;
       margin: 3rem auto;
-      background: rgba(3, 25, 52, 0.85);
+      background: #1E1E1E;
       border-radius: 16px;
       box-shadow: 0 0 20px #FF914D99;
       padding: 2.5rem 3rem;
@@ -65,8 +65,8 @@
       font-size: 2.6rem;
       margin: 0 0 0.6rem;
       text-align: center;
-      color: #ffff33;
-      text-shadow: 0 0 15px #ffff33cc;
+      color: #FF6B00;
+      text-shadow: 0 0 10px #FF914D88;
     }
 
     h2 {
@@ -74,14 +74,14 @@
       font-size: 1.15rem;
       margin: 0 0 2rem;
       text-align: center;
-      color: #ffff66cc;
+      color: #FF914D;
     }
 
     label {
       display: block;
       margin-bottom: 0.4rem;
       font-weight: 600;
-      color: #ffff66cc;
+      color: #FF914D;
     }
 
     input[type="text"],
@@ -94,25 +94,24 @@
       border-radius: 10px;
       border: none;
       font-size: 1rem;
-      color: #ffff33;
-      background-color: rgba(5, 25, 52, 0.65);
-      box-shadow: inset 0 2px 6px #999900aa;
+      color: #FFFFFF;
+      background-color: #1E1E1E;
+      box-shadow: none;
       transition: background-color 0.3s ease, box-shadow 0.3s ease;
     }
 
     input:focus,
     select:focus {
-      background-color: rgba(255, 255, 0, 0.15);
+      background-color: #2a2a2a;
       outline: none;
-      box-shadow: 0 0 15px #ffff33cc;
-      color: #ffff33;
+      box-shadow: 0 0 10px #FF6B00;
     }
 
     input:-webkit-autofill,
     input:-webkit-autofill:focus {
-      background-color: rgba(255, 255, 0, 0.15) !important;
-      -webkit-text-fill-color: #ffff33 !important;
-      box-shadow: inset 0 0 0px 1000px rgba(5, 25, 52, 0.65) !important;
+      background-color: #1E1E1E !important;
+      -webkit-text-fill-color: #FFFFFF !important;
+      box-shadow: inset 0 0 0px 1000px #1E1E1E !important;
       transition: background-color 0s ease-in-out 0s;
     }
 
@@ -122,19 +121,19 @@
       font-size: 1.2rem;
       font-weight: 700;
       background: #FF6B00;
-      color: #FFFFFF;
+      color: #0A0A0A;
       border: none;
       border-radius: 12px;
       cursor: pointer;
-      box-shadow: 0 6px 18px #ffff33aa;
+      box-shadow: 0 6px 18px #FF914D88;
       transition: background 0.3s ease, color 0.3s ease;
     }
 
     button:hover,
     button:focus {
-      background: #ffff66;
-      color: #333300;
-      box-shadow: 0 8px 24px #ffff66cc;
+      background: #FF914D;
+      color: #FFFFFF;
+      box-shadow: 0 8px 24px #FF914DCC;
       outline: none;
     }
 
@@ -153,8 +152,8 @@
       z-index: 9999;
       width: 100%;
       height: 100%;
-      background-color: rgba(0, 20, 38, 0.95);
-      color: #ffff33;
+      background-color: rgba(10, 10, 10, 0.95);
+      color: #FF6B00;
       font-size: 2rem;
       text-align: center;
       padding-top: 30vh;
@@ -227,7 +226,7 @@
   }
 
   function drawMatrix() {
-    ctx.fillStyle = 'rgba(0, 20, 50, 0.2)';
+    ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.fillStyle = '#FF6B00';
@@ -291,7 +290,7 @@
       }
     } catch (err) {
       alert("Registration error. Please try again.");
-      loadingScreen.style.display = 'none';
+      loadingScreen.style.display = 'none'; 
       button.disabled = false;
     }
   });
@@ -299,5 +298,4 @@
 
 </body>
 </html>
-
 
