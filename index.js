@@ -533,6 +533,8 @@ app.get('/dashboard', async (req, res) => {
   </html>
 `;
 
+  res.send(html);
+}); 
 
 //call back
 app.post('/call-status', async (req, res) => {
