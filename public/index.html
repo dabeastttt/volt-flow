@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -15,8 +15,8 @@
       padding: 0;
       min-height: 100%;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #001426;
-      color: #ffff33;
+      background: #0A0A0A;
+      color: #FF6B00;
       overflow-x: hidden;
       scroll-behavior: smooth;
     }
@@ -38,7 +38,7 @@
       margin: 3rem auto;
       background: rgba(3, 25, 52, 0.85);
       border-radius: 16px;
-      box-shadow: 0 0 20px #ffff3399;
+      box-shadow: 0 0 20px #FF914D99;
       padding: 2.5rem 3rem;
     }
 
@@ -65,16 +65,16 @@
     .glow-icon {
       width: 120px;
       height: 120px;
-      filter: drop-shadow(0 0 12px #ffff33cc);
+      filter: drop-shadow(0 0 12px #FF6B00CC);
       animation: glowPulse 3s ease-in-out infinite;
     }
 
     @keyframes glowPulse {
       0%, 100% {
-        filter: drop-shadow(0 0 8px #ffff33aa);
+        filter: drop-shadow(0 0 8px #FF6B00AA);
       }
       50% {
-        filter: drop-shadow(0 0 16px #ffff66cc);
+        filter: drop-shadow(0 0 16px #FF914DCC);
       }
     }
 
@@ -126,13 +126,19 @@
       color: #ffff33;
     }
 
+    input:-webkit-autofill {
+      background-color: rgba(255, 255, 0, 0.15) !important;
+      -webkit-text-fill-color: #ffff33 !important;
+      transition: background-color 0s ease-in-out 0s;
+    }
+
     button {
       width: 100%;
       padding: 0.9rem;
       font-size: 1.2rem;
       font-weight: 700;
-      color: #333300;
-      background: #ffff33;
+      background: #FF6B00;
+      color: #FFFFFF;
       border: none;
       border-radius: 12px;
       cursor: pointer;
@@ -176,18 +182,22 @@
 <canvas id="matrixCanvas"></canvas>
 
 <main>
-  <div class="bolt-wrapper">
-    <svg class="glow-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="hatGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#ffff33" />
-          <stop offset="100%" stop-color="#cccc00" />
-        </linearGradient>
-      </defs>
-      <path d="M32 8c-11 0-20 9-20 20v4c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4v-4c0-11-9-20-20-20z" fill="url(#hatGradient)" stroke="#999900" stroke-width="2"/>
-      <path d="M20 36v-4c0-6.6 5.4-12 12-12s12 5.4 12 12v4" fill="none" stroke="#999900" stroke-width="2"/>
-    </svg>
-  </div>
+  <svg class="glow-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="orangeBolt" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#FF6B00" />
+        <stop offset="100%" stop-color="#FF914D" />
+      </linearGradient>
+    </defs>
+    <path d="M32 8c-11 0-20 9-20 20v4c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4v-4c0-11-9-20-20-20z"
+          fill="url(#orangeBolt)"
+          stroke="#FFFFFF"
+          stroke-width="2"/>
+    <path d="M20 36v-4c0-6.6 5.4-12 12-12s12 5.4 12 12v4"
+          fill="none"
+          stroke="#FFFFFF"
+          stroke-width="2"/>
+  </svg>
 
   <h1>TradeAssist A.I</h1>
   <h2>24/7 Receptionist — The Front Desk That Never Sleeps.</h2>
@@ -236,7 +246,7 @@
     ctx.fillStyle = 'rgba(0, 20, 50, 0.2)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = '#ffff33';
+    ctx.fillStyle = '#FF6B00';
     ctx.font = fontSize + 'px monospace';
 
     for (let i = 0; i < columns; i++) {
@@ -260,6 +270,7 @@
 <script>
   const form = document.getElementById('signupForm');
   const loadingScreen = document.getElementById('loadingScreen');
+  const button = form.querySelector('button');
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -270,6 +281,7 @@
     }
 
     loadingScreen.style.display = 'block';
+    button.disabled = true;
 
     const formData = {
       name: document.getElementById('name').value.trim(),
@@ -296,6 +308,7 @@
     } catch (err) {
       alert("Registration error. Please try again.");
       loadingScreen.style.display = 'none';
+      button.disabled = false;
     }
   });
 </script>
