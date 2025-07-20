@@ -337,29 +337,62 @@ app.post('/register', async (req, res) => {
 // 📊 View dashboard (basic HTML)
 app.get('/dashboard', async (req, res) => {
   const { phone: phoneRaw } = req.query;
-
   if (!phoneRaw) return res.status(400).send('Phone number required');
 
   const phone = formatPhoneNumber(phoneRaw);
 
   try {
-    const messages = await getMessagesForPhone(phone);
+    const { data: messages } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('phone', phone)
+      .order('created_at', { ascending: false });
+
+    const { data: voicemails } = await supabase
+      .from('voicemails')
+      .select('*')
+      .eq('phone', phone)
+      .order('created_at', { ascending: false });
 
     const html = `
       <html>
         <head>
           <title>TradeAssist A.I Dashboard</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 2rem; background: #f5f5f5; }
+            h2 { color: #003355; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
+            th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+            th { background: #003355; color: white; }
+            audio { width: 100%; }
+          </style>
         </head>
         <body>
-          <h2>Message History for ${phone}</h2>
+          <h2>📨 Message History for ${phone}</h2>
           <table>
             <tr><th>Time</th><th>Incoming</th><th>Reply</th></tr>
             ${messages
-              .map(
+              ?.map(
                 (msg) =>
                   `<tr><td>${msg.created_at}</td><td>${msg.incoming}</td><td>${msg.outgoing}</td></tr>`
               )
-              .join('')}
+              .join('') || '<tr><td colspan="3">No messages found.</td></tr>'}
+          </table>
+
+          <h2>🎧 Voicemail Log</h2>
+          <table>
+            <tr><th>Time</th><th>Audio</th><th>Transcript</th><th>AI Reply</th></tr>
+            ${voicemails
+              ?.map(
+                (vm) =>
+                  `<tr>
+                    <td>${vm.created_at}</td>
+                    <td>${vm.recording_url ? `<audio controls src="${vm.recording_url}"></audio>` : 'No audio'}</td>
+                    <td>${vm.transcription || '—'}</td>
+                    <td>${vm.ai_reply || '—'}</td>
+                  </tr>`
+              )
+              .join('') || '<tr><td colspan="4">No voicemails found.</td></tr>'}
           </table>
         </body>
       </html>
@@ -372,6 +405,7 @@ app.get('/dashboard', async (req, res) => {
   }
 });
 
+//call back
 app.post('/call-status', async (req, res) => {
   const callStatus = req.body.CallStatus; // 'no-answer', 'busy', etc.
   const fromRaw = req.body.From || '';
@@ -437,13 +471,17 @@ app.post('/voice', (req, res) => {
   res.send(response.toString());
 });
 
+
+//voicemail
 app.post('/voicemail', async (req, res) => {
-  const transcription = req.body.TranscriptionText || '';
+  const rawRecordingUrl = req.body.RecordingUrl || '';
+  const recording_url = rawRecordingUrl ? `${rawRecordingUrl}.mp3` : '';
   const fromRaw = req.body.From || '';
   const from = formatPhoneNumber(fromRaw);
   const tradieNumber = process.env.TRADIE_PHONE_NUMBER;
 
   console.log(`🎙️ Voicemail from ${from}: ${transcription}`);
+  console.log(`🔗 Recording URL: ${recording_url}`);
 
   const introMsg = INTRO_MESSAGE;
   let reply = '';
@@ -501,12 +539,17 @@ app.post('/voicemail', async (req, res) => {
     });
     console.log(`✅ Alerted tradie at ${tradieNumber}`);
 
-    // 7. Log to messages (existing)
+    // 7. Log to messages
     await logMessage(from, `Voicemail: ${transcription.slice(0, 500)}`, reply.slice(0, 500));
     console.log(`📦 Logged message to DB`);
 
-    // 8. Save voicemail record
-    await saveVoicemail({ phone: from, transcription, ai_reply: reply });
+    // 8. Save voicemail record with recording URL
+    await saveVoicemail({
+      phone: from,
+      transcription,
+      ai_reply: reply,
+      recording_url, // ✅ Save this in Supabase
+    });
     console.log('💾 Voicemail saved to Supabase');
 
     return res.status(200).send('Voicemail processed');

@@ -71,9 +71,9 @@
       }
     }
 
-    .bolt-svg.glow-icon {
-      width: 80px;
-      height: 80px;
+    .glow-icon {
+      width: 120px;
+      height: 120px;
       filter: drop-shadow(0 0 12px #eaff00cc);
       animation: glowPulse 3s ease-in-out infinite;
       display: block;
@@ -122,78 +122,76 @@
   </style>
 </head>
 <body>
+  <canvas id="matrixCanvas"></canvas>
 
-<canvas id="matrixCanvas"></canvas>
+  <div class="success-box">
+    <div class="bolt-wrapper">
+      <svg class="glow-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="hatGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ffff33" />
+            <stop offset="100%" stop-color="#cccc00" />
+          </linearGradient>
+        </defs>
+        <path d="M32 8c-11 0-20 9-20 20v4c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4v-4c0-11-9-20-20-20z" fill="url(#hatGradient)" stroke="#999900" stroke-width="2"/>
+        <path d="M20 36v-4c0-6.6 5.4-12 12-12s12 5.4 12 12v4" fill="none" stroke="#999900" stroke-width="2"/>
+      </svg>
+    </div>
 
-<main>
-  <div class="bolt-wrapper">
-    <svg class="glow-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="hatGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#ffff33" />
-          <stop offset="100%" stop-color="#cccc00" />
-        </linearGradient>
-      </defs>
-      <path d="M32 8c-11 0-20 9-20 20v4c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4v-4c0-11-9-20-20-20z" fill="url(#hatGradient)" stroke="#999900" stroke-width="2"/>
-      <path d="M20 36v-4c0-6.6 5.4-12 12-12s12 5.4 12 12v4" fill="none" stroke="#999900" stroke-width="2"/>
-    </svg>
+    <h1>Success!</h1>
+    <p>Your 24/7 Receptionist is now activated.<br>Ready to simplify your daily tasks and save you time!</p>
+    <a href="/#signupForm">Back to Home</a>
   </div>
 
-  <h1>Success!</h1>
-  <p>Your 24/7 Receptionist is now activated.<br>Ready to simplify your daily tasks and save you time!</p>
-  <a href="/#signupForm">Back to Home</a>
+  <script>
+    console.log("✅ Success page loaded – user onboarded.");
 
-<script>
-  console.log("✅ Success page loaded – user onboarded.");
+    const canvas = document.getElementById('matrixCanvas');
+    const ctx = canvas.getContext('2d');
 
-  const canvas = document.getElementById('matrixCanvas');
-  const ctx = canvas.getContext('2d');
+    let width, height;
+    const fontSize = 16;
+    let columns;
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+<>?';
+    let drops = [];
 
-  let width, height;
-  const fontSize = 16;
-  let columns;
-  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+<>?';
-  let drops = [];
-
-  function resize() {
-    width = window.innerWidth;
-    height = window.innerHeight;
-    canvas.width = width;
-    canvas.height = height;
-    columns = Math.floor(width / fontSize);
-    drops = Array.from({ length: columns }).map(() => Math.random() * height / fontSize);
-  }
-
-  function draw() {
-    ctx.fillStyle = 'rgba(0, 20, 50, 0.2)';
-    ctx.fillRect(0, 0, width, height);
-
-    ctx.fillStyle = '#eaff00';
-    ctx.font = `${fontSize}px monospace`;
-
-    for (let i = 0; i < drops.length; i++) {
-      const char = letters.charAt(Math.floor(Math.random() * letters.length));
-      const x = i * fontSize;
-      const y = drops[i] * fontSize;
-
-      ctx.fillText(char, x, y);
-
-      if (y > height && Math.random() > 0.975) {
-        drops[i] = 0;
-      }
-
-      drops[i] += 0.3;
+    function resize() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
+      columns = Math.floor(width / fontSize);
+      drops = Array.from({ length: columns }).map(() => Math.random() * height / fontSize);
     }
 
-    requestAnimationFrame(draw);
-  }
+    function draw() {
+      ctx.fillStyle = 'rgba(0, 20, 50, 0.2)';
+      ctx.fillRect(0, 0, width, height);
 
-  resize();
-  draw();
-  window.addEventListener('resize', resize);
-</script>
+      ctx.fillStyle = '#eaff00';
+      ctx.font = `${fontSize}px monospace`;
 
+      for (let i = 0; i < drops.length; i++) {
+        const char = letters.charAt(Math.floor(Math.random() * letters.length));
+        const x = i * fontSize;
+        const y = drops[i] * fontSize;
+
+        ctx.fillText(char, x, y);
+
+        if (y > height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+
+        drops[i] += 0.3;
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    resize();
+    draw();
+    window.addEventListener('resize', resize);
+  </script>
 </body>
 </html>
-
 
