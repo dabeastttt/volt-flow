@@ -10,8 +10,8 @@
       padding: 0;
       height: 100vh;
       overflow: hidden;
-      background: #001426;
-      color: #eaff00;
+      background: #0A0A0A;
+      color: #FF6B00;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       display: flex;
       justify-content: center;
@@ -25,20 +25,21 @@
       width: 100%;
       height: 100%;
       z-index: 0;
+      background: #0A0A0A;
     }
 
     .success-box {
       position: relative;
       z-index: 1;
-      background: rgba(3, 25, 52, 0.85);
+      background: rgba(30, 30, 30, 0.85);
       border-radius: 16px;
       padding: 2.5rem 2rem;
       max-width: 360px;
       text-align: center;
       margin: 3rem auto;
       box-shadow:
-        0 0 16px 4px #eaff0066,
-        inset 0 0 10px 2px #eaff0044;
+        0 0 16px 4px #FF6B0088,
+        inset 0 0 10px 2px #FF6B0044;
       opacity: 0;
       transform: translateY(20px);
       animation: fadeInUp 1s ease forwards 0.4s;
@@ -74,7 +75,7 @@
     .glow-icon {
       width: 120px;
       height: 120px;
-      filter: drop-shadow(0 0 12px #eaff00cc);
+      filter: drop-shadow(0 0 12px #FF6B00cc);
       animation: glowPulse 3s ease-in-out infinite;
       display: block;
       margin: 0 auto 1rem;
@@ -82,10 +83,10 @@
 
     @keyframes glowPulse {
       0%, 100% {
-        filter: drop-shadow(0 0 8px #eaff00aa);
+        filter: drop-shadow(0 0 8px #FF6B00aa);
       }
       50% {
-        filter: drop-shadow(0 0 16px #ccff00cc);
+        filter: drop-shadow(0 0 16px #FF914Dcc);
       }
     }
 
@@ -93,30 +94,31 @@
       font-size: 2.8rem;
       font-weight: 900;
       margin: 0.5rem 0 1rem;
-      text-shadow: 0 0 15px #eaff00bb;
+      text-shadow: 0 0 15px #FF6B00bb;
+      color: #FF6B00;
     }
 
     p {
       font-size: 1.25rem;
       margin-bottom: 2rem;
-      color: #faffbccc;
+      color: #FF914Dcc;
     }
 
     a {
       text-decoration: none;
-      color: #001200;
-      background: #eaff00;
+      color: #0A0A0A;
+      background: #FF6B00;
       padding: 12px 25px;
       font-weight: 700;
       border-radius: 12px;
-      box-shadow: 0 6px 18px #eaff00cc;
+      box-shadow: 0 6px 18px #FF914D88;
       transition: background 0.3s ease, color 0.3s ease;
     }
 
     a:hover, a:focus {
-      background: #f6ff33;
-      color: #001200;
-      box-shadow: 0 8px 24px #f6ff33dd;
+      background: #FF914D;
+      color: #0A0A0A;
+      box-shadow: 0 8px 24px #FF914Dcc;
       outline: none;
     }
   </style>
@@ -128,13 +130,15 @@
     <div class="bolt-wrapper">
       <svg class="glow-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="hatGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#ffff33" />
-            <stop offset="100%" stop-color="#cccc00" />
+          <linearGradient id="orangeBolt" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FF6B00" />
+            <stop offset="100%" stop-color="#FF914D" />
           </linearGradient>
         </defs>
-        <path d="M32 8c-11 0-20 9-20 20v4c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4v-4c0-11-9-20-20-20z" fill="url(#hatGradient)" stroke="#999900" stroke-width="2"/>
-        <path d="M20 36v-4c0-6.6 5.4-12 12-12s12 5.4 12 12v4" fill="none" stroke="#999900" stroke-width="2"/>
+        <path d="M32 8c-11 0-20 9-20 20v4c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4v-4c0-11-9-20-20-20z"
+          fill="url(#orangeBolt)" stroke="#FFFFFF" stroke-width="2"/>
+        <path d="M20 36v-4c0-6.6 5.4-12 12-12s12 5.4 12 12v4"
+          fill="none" stroke="#FFFFFF" stroke-width="2"/>
       </svg>
     </div>
 
@@ -144,15 +148,12 @@
   </div>
 
   <script>
-    console.log("✅ Success page loaded – user onboarded.");
-
     const canvas = document.getElementById('matrixCanvas');
     const ctx = canvas.getContext('2d');
-
-    let width, height;
     const fontSize = 16;
+    let width, height;
     let columns;
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+<>?';
+    const letters = 'アァカサタナハマヤラ0123456789$#%@&*!ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     let drops = [];
 
     function resize() {
@@ -161,28 +162,25 @@
       canvas.width = width;
       canvas.height = height;
       columns = Math.floor(width / fontSize);
-      drops = Array.from({ length: columns }).map(() => Math.random() * height / fontSize);
+      drops = Array(columns).fill(1);
     }
 
     function draw() {
-      ctx.fillStyle = 'rgba(0, 20, 50, 0.2)';
+      ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
       ctx.fillRect(0, 0, width, height);
 
-      ctx.fillStyle = '#eaff00';
+      ctx.fillStyle = '#FF6B00';
       ctx.font = `${fontSize}px monospace`;
 
-      for (let i = 0; i < drops.length; i++) {
+      for (let i = 0; i < columns; i++) {
         const char = letters.charAt(Math.floor(Math.random() * letters.length));
-        const x = i * fontSize;
-        const y = drops[i] * fontSize;
+        ctx.fillText(char, i * fontSize, drops[i] * fontSize);
 
-        ctx.fillText(char, x, y);
-
-        if (y > height && Math.random() > 0.975) {
+        if (drops[i] * fontSize > height && Math.random() > 0.975) {
           drops[i] = 0;
         }
 
-        drops[i] += 0.3;
+        drops[i] += 1.5;
       }
 
       requestAnimationFrame(draw);
@@ -194,4 +192,3 @@
   </script>
 </body>
 </html>
-

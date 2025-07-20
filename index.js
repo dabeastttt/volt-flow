@@ -363,164 +363,176 @@ app.get('/dashboard', async (req, res) => {
       .order('created_at', { ascending: false });
 
     const html = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>TradeAssist A.I Dashboard</title>
-        <style>
-          body, html {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #001426;
-            color: #ffff33;
-            overflow-x: hidden;
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TradeAssist A.I Dashboard</title>
+    <style>
+      body, html {
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #0A0A0A;
+        color: #FF914D;
+        overflow-x: hidden;
+        min-height: 100vh;
+      }
+
+      #matrixCanvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        background: #0A0A0A;
+      }
+
+      main {
+        position: relative;
+        z-index: 10;
+        max-width: 960px;
+        margin: 4rem auto;
+        background: #1E1E1E;
+        border-radius: 16px;
+        box-shadow: 0 0 20px #FF914D99;
+        padding: 2rem 3rem;
+        color: #FF914D;
+      }
+
+      h2 {
+        color: #FF6B00;
+        text-align: center;
+        margin-bottom: 1rem;
+        text-shadow: 0 0 10px #FF914Dbb;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 2rem;
+        color: #FF914D;
+      }
+
+      th, td {
+        border: 1px solid #FF6B00;
+        padding: 8px;
+        text-align: left;
+      }
+
+      th {
+        background: #2a2a2a;
+        color: #FF6B00;
+      }
+
+      tr:nth-child(even) {
+        background-color: rgba(255, 145, 77, 0.05);
+      }
+
+      audio {
+        width: 100%;
+      }
+
+      @media (max-width: 600px) {
+        main {
+          padding: 1.5rem;
+          margin: 2rem 1rem;
+        }
+        table, th, td {
+          font-size: 0.85rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="matrixCanvas"></canvas>
+
+    <main>
+      <h2>📨 Message History for ${phone}</h2>
+      <table>
+        <tr><th>Time</th><th>Incoming</th><th>Reply</th></tr>
+        ${
+          messages?.length
+            ? messages
+                .map(
+                  (msg) =>
+                    `<tr><td>${msg.created_at}</td><td>${msg.incoming}</td><td>${msg.outgoing}</td></tr>`
+                )
+                .join('')
+            : '<tr><td colspan="3">No messages found.</td></tr>'
+        }
+      </table>
+
+      <h2>🎧 Voicemail Log</h2>
+      <table>
+        <tr><th>Time</th><th>Audio</th><th>Transcript</th><th>AI Reply</th></tr>
+        ${
+          voicemails?.length
+            ? voicemails
+                .map(
+                  (vm) =>
+                    `<tr>
+                      <td>${vm.created_at}</td>
+                      <td>${
+                        vm.recording_url
+                          ? `<audio controls src="${vm.recording_url}"></audio>`
+                          : 'No audio'
+                      }</td>
+                      <td>${vm.transcription || '—'}</td>
+                      <td>${vm.ai_reply || '—'}</td>
+                    </tr>`
+                )
+                .join('')
+            : '<tr><td colspan="4">No voicemails found.</td></tr>'
+        }
+      </table>
+    </main>
+
+    <script>
+      const canvas = document.getElementById('matrixCanvas');
+      const ctx = canvas.getContext('2d');
+      const fontSize = 16;
+      let columns, drops;
+
+      const letters = 'アァカサタナハマヤラ0123456789$#%@&*!ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+      function initMatrix() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        columns = Math.floor(canvas.width / fontSize);
+        drops = Array(columns).fill(1);
+      }
+
+      function drawMatrix() {
+        ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#FF6B00';
+        ctx.font = fontSize + 'px monospace';
+
+        for (let i = 0; i < columns; i++) {
+          const char = letters.charAt(Math.floor(Math.random() * letters.length));
+          ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+
+          if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+            drops[i] = 0;
           }
+          drops[i] += 0.3;
+        }
 
-          #matrixCanvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            background: #001426;
-          }
+        requestAnimationFrame(drawMatrix);
+      }
 
-          main {
-            position: relative;
-            z-index: 10;
-            max-width: 960px;
-            margin: 4rem auto;
-            background: rgba(3, 25, 52, 0.85);
-            border-radius: 16px;
-            box-shadow: 0 0 20px #ffff3399;
-            padding: 2rem 3rem;
-          }
+      window.addEventListener('resize', initMatrix);
+      initMatrix();
+      drawMatrix();
+    </script>
+  </body>
+  </html>
+`;
 
-          h2 {
-            color: #ffff33;
-            text-align: center;
-            margin-bottom: 1rem;
-            text-shadow: 0 0 10px #ffff66aa;
-          }
-
-          table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 2rem;
-          }
-
-          th, td {
-            border: 1px solid #999900;
-            padding: 8px;
-            text-align: left;
-            color: #ffff99;
-          }
-
-          th {
-            background: #002233;
-            color: #ffff33;
-          }
-
-          audio {
-            width: 100%;
-          }
-
-          tr:nth-child(even) {
-            background-color: rgba(255, 255, 0, 0.05);
-          }
-
-          @media (max-width: 600px) {
-            main {
-              padding: 1.5rem;
-              margin: 2rem 1rem;
-            }
-            table, th, td {
-              font-size: 0.85rem;
-            }
-          }
-        </style>
-      </head>
-      <body>
-        <canvas id="matrixCanvas"></canvas>
-
-        <main>
-          <h2>📨 Message History for ${phone}</h2>
-          <table>
-            <tr><th>Time</th><th>Incoming</th><th>Reply</th></tr>
-            ${messages?.map(
-              (msg) =>
-                `<tr><td>${msg.created_at}</td><td>${msg.incoming}</td><td>${msg.outgoing}</td></tr>`
-            ).join('') || '<tr><td colspan="3">No messages found.</td></tr>'}
-          </table>
-
-          <h2>🎧 Voicemail Log</h2>
-          <table>
-            <tr><th>Time</th><th>Audio</th><th>Transcript</th><th>AI Reply</th></tr>
-            ${voicemails?.map(
-              (vm) =>
-                `<tr>
-                  <td>${vm.created_at}</td>
-                  <td>${vm.recording_url ? `<audio controls src="${vm.recording_url}"></audio>` : 'No audio'}</td>
-                  <td>${vm.transcription || '—'}</td>
-                  <td>${vm.ai_reply || '—'}</td>
-                </tr>`
-            ).join('') || '<tr><td colspan="4">No voicemails found.</td></tr>'}
-          </table>
-        </main>
-
-        <script>
-          const canvas = document.getElementById('matrixCanvas');
-          const ctx = canvas.getContext('2d');
-          const fontSize = 16;
-          let columns, drops;
-
-          const letters = 'アァカサタナハマヤラ0123456789$#%@&*!ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
-          function initMatrix() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            columns = Math.floor(canvas.width / fontSize);
-            drops = Array(columns).fill(1);
-          }
-
-          function drawMatrix() {
-            ctx.fillStyle = 'rgba(0, 20, 50, 0.2)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.fillStyle = '#ffff33';
-            ctx.font = fontSize + 'px monospace';
-
-            for (let i = 0; i < columns; i++) {
-              const char = letters.charAt(Math.floor(Math.random() * letters.length));
-              ctx.fillText(char, i * fontSize, drops[i] * fontSize);
-
-              if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-                drops[i] = 0;
-              }
-              drops[i] += 0.3;
-            }
-
-            requestAnimationFrame(drawMatrix);
-          }
-
-          window.addEventListener('resize', initMatrix);
-          initMatrix();
-          drawMatrix();
-        </script>
-      </body>
-      </html>
-    `;
-
-    res.send(html);
-  } catch (err) {
-    console.error('Error loading dashboard:', err);
-    res.status(500).send('Error loading dashboard');
-  }
-});
 
 //call back
 app.post('/call-status', async (req, res) => {
