@@ -73,7 +73,7 @@ const limiter = rateLimit({
 });
 app.use('/sms', limiter);
 
-const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61497074904';
+const tradieNumber = process.env.TRADIE_PHONE_NUMBER || '+61412586083';
 const callbackTime = '4 pm';
 
 // MAIN SMS INBOUND HANDLER
