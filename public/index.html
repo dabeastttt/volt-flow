@@ -1,4 +1,4 @@
-<!<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -42,27 +42,9 @@
       padding: 2.5rem 3rem;
     }
 
-    .bolt-wrapper {
-      display: flex;
-      justify-content: center;
-      animation: slideToCenter 1.8s ease-out forwards;
-      transform: translateX(100%);
-      opacity: 0;
-      margin-bottom: 1.5rem;
-    }
-
-    @keyframes slideToCenter {
-      0% {
-        transform: translateX(100%);
-        opacity: 0;
-      }
-      100% {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-
     .glow-icon {
+      display: block;
+      margin: 0 auto 1.5rem auto;
       width: 120px;
       height: 120px;
       filter: drop-shadow(0 0 12px #FF6B00CC);
@@ -113,7 +95,7 @@
       border: none;
       font-size: 1rem;
       color: #ffff33;
-      background-color: rgba(5, 25, 52, 0.5);
+      background-color: rgba(5, 25, 52, 0.65);
       box-shadow: inset 0 2px 6px #999900aa;
       transition: background-color 0.3s ease, box-shadow 0.3s ease;
     }
@@ -126,9 +108,11 @@
       color: #ffff33;
     }
 
-    input:-webkit-autofill {
+    input:-webkit-autofill,
+    input:-webkit-autofill:focus {
       background-color: rgba(255, 255, 0, 0.15) !important;
       -webkit-text-fill-color: #ffff33 !important;
+      box-shadow: inset 0 0 0px 1000px rgba(5, 25, 52, 0.65) !important;
       transition: background-color 0s ease-in-out 0s;
     }
 
@@ -315,4 +299,5 @@
 
 </body>
 </html>
+
 
