@@ -517,7 +517,6 @@ app.post('/voicemail', async (req, res) => {
 });
 
 // Your app listen block, outside the route handlers:
-const port = process.env.PORT || 10000;
 app.listen(port, () => {
   console.log(`🚀 Server running on port ${port}`);
 });
