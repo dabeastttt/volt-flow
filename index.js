@@ -378,7 +378,7 @@ app.get('/dashboard', (req, res) => {
      background: #1E1E1E;
      padding: 2rem 3rem;
      border-radius: 16px;
-     box-shadow: 0 0 30px 5px #FF914D; /* outer glow all around */
+     box-shadow: 0 0 20px #FF914Daa, 0 0 40px #FF6B0088;
      text-align: center;
      width: 320px;
     }
@@ -419,26 +419,27 @@ app.get('/dashboard', (req, res) => {
     }
 
     button {
-      background: #FF6B00;
-      border: none;
-      color: #FFFFFF;
-      padding: 0.7rem 1.2rem;
-      font-size: 1rem;
-      border-radius: 8px;
-      cursor: pointer;
-      width: 100%;
-      box-shadow: 0 0 10px 3px #FF6B00;
-      transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
-      user-select: none;
-    }
+     background: #FF6B00;
+     border: none;
+     color: #000000; /* Black text normally */
+     padding: 0.7rem 1.2rem;
+     font-size: 1rem;
+     border-radius: 8px;
+     cursor: pointer;
+     width: 100%;
+     box-shadow: 0 0 6px 2px #FF6B00;
+     transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+     user-select: none;
+   }
 
     button:hover,
     button:focus {
-      background: #FFFFFF;
-      color: #FF6B00;
-      box-shadow: 0 0 15px 5px #FF6B00;
-      outline: none;
-    }
+     background: #FFFFFF;
+     color: #FFFFFF; /* White text on hover */
+     box-shadow: 0 0 10px 3px #FF6B0088; /* Toned-down glow */
+     outline: none;
+   }
+
   </style>
 </head>
 <body>
