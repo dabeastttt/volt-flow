@@ -399,19 +399,19 @@ app.get('/dashboard', (req, res) => {
       box-sizing: border-box;
       background-color: #1E1E1E; /* dark background */
       color: #FFFFFF;
-      box-shadow: 0 0 10px #FF6B00; /* orange glow */
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 0 8px 3px #FF6B00; /* orange glow fully around */
+      transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
     }
 
     input[type="text"]:focus {
       outline: none;
       border-color: #FF914D;
-      box-shadow: 0 0 15px #FF914D;
+      box-shadow: 0 0 12px 4px #FF914D;
       background-color: #2a2a2a;
     }
 
     button {
-      background: #000000; /* black background */
+      background: #FF6B00; /* orange background */
       border: none;
       color: #FFFFFF;
       padding: 0.7rem 1.2rem;
@@ -419,7 +419,7 @@ app.get('/dashboard', (req, res) => {
       border-radius: 8px;
       cursor: pointer;
       width: 100%;
-      box-shadow: none;
+      box-shadow: 0 0 10px 3px #FF6B00; /* orange glow */
       transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
       user-select: none;
     }
@@ -428,7 +428,7 @@ app.get('/dashboard', (req, res) => {
     button:focus {
       background: #FFFFFF; /* white background on hover/focus */
       color: #FF6B00;      /* orange text */
-      box-shadow: 0 0 15px #FF6B00;
+      box-shadow: 0 0 15px 5px #FF6B00;
       outline: none;
     }
   </style>
