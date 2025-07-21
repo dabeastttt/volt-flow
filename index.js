@@ -372,20 +372,24 @@ app.get('/dashboard', (req, res) => {
       background: #0A0A0A;
     }
 
-    main {
+     main {
       position: relative;
       z-index: 10;
       background: #1E1E1E;
-      padding: 2rem 3rem;
+      padding: 2rem 1.5rem;
       border-radius: 16px;
       box-shadow:
-        0 0 15px 5px #FF914D99,
-        0 0 30px 10px #FF6B0088;
+       0 0 15px 5px #FF914D99,
+       0 0 30px 10px #FF6B0088;
       text-align: center;
-      width: 320px;
-      color: #FFFFFF;
-      font-family: inherit;
+      width: 90%;
+     max-width: 340px;
+     color: #FFFFFF;
+     font-family: inherit;
+     margin: auto;
+     box-sizing: border-box;
     }
+
 
     .glow-icon {
       width: 120px;
@@ -426,27 +430,29 @@ app.get('/dashboard', (req, res) => {
     }
 
     button {
-      background: #FF6B00;
-      border: none;
-      color: #000000;
-      padding: 0.7rem 1.2rem;
-      font-size: 1rem;
-      border-radius: 8px;
-      cursor: pointer;
       width: 100%;
-      box-shadow: 0 0 6px 2px #FF6B00;
-      transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
-      font-family: inherit;
+      padding: 0.9rem;
+      font-size: 1.2rem;
       font-weight: 700;
+      background: #FF6B00;
+      color: #0A0A0A;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      box-shadow: 0 6px 16px #FF6B0088;
+      transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+      margin-top: 1rem;
     }
 
     button:hover,
     button:focus {
-      background: #FFFFFF;
+      background: #FF914D;
       color: #FFFFFF;
-      box-shadow: 0 0 10px 3px #FF6B0088;
-      outline: none;
+      box-shadow: 0 8px 20px #FF6B0099;
+     outline: none;
     }
+
   </style>
 </head>
 <body>
