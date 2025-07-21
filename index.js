@@ -344,61 +344,131 @@ app.post('/register', async (req, res) => {
 // 📥 Simple Login Page
 app.get('/dashboard', (req, res) => {
   const html = `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <title>TradeAssist A.I — Login</title>
-      <style>
-        body {
-          background: #0A0A0A;
-          color: #FF914D;
-          font-family: sans-serif;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          height: 100vh;
-          margin: 0;
-        }
-        h1 {
-          margin-bottom: 1rem;
-        }
-        form {
-          background: #1E1E1E;
-          padding: 2rem;
-          border-radius: 12px;
-          box-shadow: 0 0 20px #FF914D88;
-        }
-        input {
-          padding: 0.5rem;
-          border-radius: 8px;
-          border: none;
-          width: 250px;
-          margin-bottom: 1rem;
-          font-size: 1rem;
-        }
-        button {
-          background: #FF914D;
-          border: none;
-          color: #fff;
-          padding: 0.6rem 1.2rem;
-          font-size: 1rem;
-          border-radius: 8px;
-          cursor: pointer;
-        }
-      </style>
-    </head>
-    <body>
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TradeAssist A.I — Login</title>
+    <style>
+      body, html {
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #0A0A0A;
+        color: #FF914D;
+        overflow-x: hidden;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+      }
+
+      #matrixCanvas {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        z-index: 0;
+        background: #0A0A0A;
+      }
+
+      main {
+        position: relative;
+        z-index: 10;
+        background: #1E1E1E;
+        padding: 2rem 3rem;
+        border-radius: 16px;
+        box-shadow: 0 0 20px #FF914D99;
+        text-align: center;
+        width: 320px;
+      }
+
+      h1 {
+        margin-bottom: 1.5rem;
+        text-shadow: 0 0 10px #FF914Dbb;
+        color: #FF6B00;
+      }
+
+      input[type="text"] {
+        padding: 0.5rem;
+        border-radius: 8px;
+        border: none;
+        width: 100%;
+        margin-bottom: 1.5rem;
+        font-size: 1rem;
+        box-sizing: border-box;
+      }
+
+      button {
+        background: #FF914D;
+        border: none;
+        color: #fff;
+        padding: 0.7rem 1.2rem;
+        font-size: 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        width: 100%;
+        box-shadow: 0 0 10px #FF914Dcc;
+        transition: background 0.3s ease;
+      }
+      button:hover {
+        background: #ffb066;
+        box-shadow: 0 0 20px #ffb066cc;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="matrixCanvas"></canvas>
+    <main>
       <h1>🔐 Enter Your Phone Number</h1>
-      <form action="/dashboard/view" method="GET">
-        <input type="text" name="phone" placeholder="+61412345678" required />
-        <br />
+      <form action="/dashboard/view" method="GET" autocomplete="off">
+        <input type="text" name="phone" placeholder="0400 000 000" required />
         <button type="submit">View Dashboard</button>
       </form>
-    </body>
-    </html>
+    </main>
+
+    <script>
+      const canvas = document.getElementById('matrixCanvas');
+      const ctx = canvas.getContext('2d');
+      const fontSize = 16;
+      let columns, drops;
+
+      const letters = 'アァカサタナハマヤラ0123456789$#%@&*!ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+      function initMatrix() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        columns = Math.floor(canvas.width / fontSize);
+        drops = Array(columns).fill(1);
+      }
+
+      function drawMatrix() {
+        ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#FF6B00';
+        ctx.font = fontSize + 'px monospace';
+
+        for (let i = 0; i < columns; i++) {
+          const char = letters.charAt(Math.floor(Math.random() * letters.length));
+          ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+
+          if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+            drops[i] = 0;
+          }
+          drops[i] += 1.5;
+        }
+
+        requestAnimationFrame(drawMatrix);
+      }
+
+      window.addEventListener('resize', initMatrix);
+      initMatrix();
+      drawMatrix();
+    </script>
+  </body>
+  </html>
   `;
   res.send(html);
 });

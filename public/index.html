@@ -88,27 +88,25 @@
     input[type="email"],
     input[type="tel"],
     select {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    margin-bottom: 1.5rem;
-    border-radius: 10px;
-    border: 2px solid #FFA500; /* 🟧 orange border */
-    font-size: 1rem;
-    color: #FFFFFF;
-    background-color: #1E1E1E;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-    box-shadow: 0 0 8px #FFA500; /* 🟧 orange glow */
+      width: 100%;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1.5rem;
+      border-radius: 10px;
+      border: 2px solid #FF6B00;
+      font-size: 1rem;
+      color: #FFFFFF;
+      background-color: #1E1E1E;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+      box-shadow: 0 0 8px #FF6B00;
     }
-
 
     input:focus,
     select:focus {
-    background-color: #2a2a2a;
-    outline: none;
-    border-color: #FF6B00; /* ⬅️ glow color on focus */
-    box-shadow: 0 0 10px #FF6B00;
+      background-color: #2a2a2a;
+      outline: none;
+      border-color: #FF6B00; /* ⬅️ glow color on focus */
+      box-shadow: 0 0 10px #FF6B00;
     }
-
 
     input:-webkit-autofill,
     input:-webkit-autofill:focus {
@@ -130,6 +128,7 @@
       cursor: pointer;
       box-shadow: 0 6px 18px #FF914D88;
       transition: background 0.3s ease, color 0.3s ease;
+      margin-top: 1rem;
     }
 
     button:hover,
@@ -209,6 +208,9 @@
 
     <button type="submit">ONBOARD YOUR 24/7 Receptionist</button>
   </form>
+
+  <!-- NEW LOGIN BUTTON -->
+  <button id="loginButton" type="button">🔐 Login to Dashboard</button>
 </main>
 
 <div id="loadingScreen">Onboarding your AI Receptionist...</div>
@@ -296,6 +298,11 @@
       loadingScreen.style.display = 'none'; 
       button.disabled = false;
     }
+  });
+
+  // NEW: Login button navigation
+  document.getElementById('loginButton').addEventListener('click', () => {
+    window.location.href = 'https://volt-flow.onrender.com/dashboard';
   });
 </script>
 
