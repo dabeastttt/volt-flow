@@ -379,16 +379,17 @@ app.get('/dashboard', (req, res) => {
       padding: 2rem 1.5rem;
       border-radius: 16px;
       box-shadow:
-       0 0 15px 5px #FF914D99,
-       0 0 30px 10px #FF6B0088;
-      text-align: center;
+       0 0 12px 2px rgba(255, 145, 77, 0.4),
+       0 0 20px 4px rgba(255, 107, 0, 0.25);
+       text-align: center;
       width: 90%;
-     max-width: 340px;
-     color: #FFFFFF;
-     font-family: inherit;
-     margin: auto;
-     box-sizing: border-box;
+      max-width: 340px;
+      color: #FFFFFF;
+      font-family: inherit;
+      margin: auto;
+      box-sizing: border-box;
     }
+
 
 
     .glow-icon {
