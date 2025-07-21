@@ -373,21 +373,22 @@ app.get('/dashboard', (req, res) => {
     }
 
     main {
-      position: relative;
-      z-index: 10;
-      background: #1E1E1E;
-      padding: 2rem 3rem;
-      border-radius: 16px;
-      box-shadow: 0 0 30px 5px #FF914D; /* full glow all sides */
-      text-align: center;
-      width: 320px;
+     position: relative;
+     z-index: 10;
+     background: #1E1E1E;
+     padding: 2rem 3rem;
+     border-radius: 16px;
+     box-shadow: 0 0 30px 5px #FF914D; /* outer glow all around */
+     text-align: center;
+     width: 320px;
     }
 
+
     .glow-icon {
-      width: 64px;
-      height: 64px;
+      width: 120px;
+      height: 120px;
       margin-bottom: 1rem;
-      filter: drop-shadow(0 0 8px #FF6B00);
+      filter: drop-shadow(0 0 12px #FF6B00);
     }
 
     h1 {
@@ -550,6 +551,15 @@ app.get('/dashboard/view', async (req, res) => {
         overflow-x: hidden;
         min-height: 100vh;
       }
+    
+     .glow-icon {
+       width: 120px;
+       height: 120px;
+       margin: 0 auto 1rem auto;
+       display: block;
+       filter: drop-shadow(0 0 10px #FF6B00);
+      }
+
 
       #matrixCanvas {
         position: fixed;
@@ -635,6 +645,24 @@ app.get('/dashboard/view', async (req, res) => {
     <canvas id="matrixCanvas"></canvas>
 
     <main>
+
+    <svg class="glow-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="orangeBolt" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF6B00" />
+      <stop offset="100%" stop-color="#FF914D" />
+    </linearGradient>
+  </defs>
+  <path d="M32 8c-11 0-20 9-20 20v4c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4v-4c0-11-9-20-20-20z"
+        fill="url(#orangeBolt)"
+        stroke="#FFFFFF"
+        stroke-width="2"/>
+  <path d="M20 36v-4c0-6.6 5.4-12 12-12s12 5.4 12 12v4"
+        fill="none"
+        stroke="#FFFFFF"
+        stroke-width="2"/>
+</svg>
+
       <h2>📨 Message History for ${phone}</h2>
       <table>
         <tr><th>Time</th><th>Incoming</th><th>Reply</th></tr>
