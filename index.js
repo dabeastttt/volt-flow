@@ -478,7 +478,8 @@ app.get('/dashboard', (req, res) => {
   const canvas = document.getElementById('matrixCanvas');
   const ctx = canvas.getContext('2d');
   const fontSize = 20;
-  let columns, drops;
+  let columns;
+  let drops = [];
 
   const symbols = [
     '⊗', '⛏', '⚒', '⛓', '🛠', '🗜', '⚙', '⛭',
@@ -487,15 +488,22 @@ app.get('/dashboard', (req, res) => {
   ];
 
   function initMatrix() {
+    // Set canvas width and height properties (not CSS) for proper drawing scale
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+
     columns = Math.floor(canvas.width / fontSize);
-    drops = Array(columns).fill(1);
+    drops = [];
+    for (let i = 0; i < columns; i++) {
+      drops[i] = Math.floor(Math.random() * canvas.height / fontSize);
+    }
   }
 
   function drawMatrix() {
-    ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
+    // Semi-transparent background to create fading trail effect
+    ctx.fillStyle = 'rgba(10, 10, 10, 0.1)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     ctx.fillStyle = '#FF6B00';
     ctx.font = fontSize + 'px monospace';
 
@@ -503,21 +511,27 @@ app.get('/dashboard', (req, res) => {
       const symbol = symbols[Math.floor(Math.random() * symbols.length)];
       ctx.fillText(symbol, i * fontSize, drops[i] * fontSize);
 
+      // Reset drop to top randomly after it passes bottom
       if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
         drops[i] = 0;
       }
+
       drops[i]++;
     }
 
     requestAnimationFrame(drawMatrix);
   }
 
-  window.addEventListener('resize', initMatrix);
-  window.onload = () => {
+  window.addEventListener('resize', () => {
+    initMatrix();
+  });
+
+  window.addEventListener('DOMContentLoaded', () => {
     initMatrix();
     drawMatrix();
-  };
+  });
 </script>
+
 </body>
 </html>`;
   res.send(html);
@@ -709,50 +723,64 @@ app.get('/dashboard/view', async (req, res) => {
     </div>
   </main>
 
-  <script>
-    const canvas = document.getElementById('matrixCanvas');
-    const ctx = canvas.getContext('2d');
-    const fontSize = 20;
-    let columns, drops;
+<script>
+  const canvas = document.getElementById('matrixCanvas');
+  const ctx = canvas.getContext('2d');
+  const fontSize = 20;
+  let columns;
+  let drops = [];
 
-    const symbols = [
-      '⊗', '⛏', '⚒', '⛓', '🛠', '🗜', '⚙', '⛭',
-      '✚', '╬', '♯', '†', '☗', '╧',
-      '#', '%', '&', '*', '+', '=', '-', '|', '/', '\\'
-    ];
+  const symbols = [
+    '⊗', '⛏', '⚒', '⛓', '🛠', '🗜', '⚙', '⛭',
+    '✚', '╬', '♯', '†', '☗', '╧',
+    '#', '%', '&', '*', '+', '=', '-', '|', '/', '\\'
+  ];
 
-    function initMatrix() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      columns = Math.floor(canvas.width / fontSize);
-      drops = Array(columns).fill(1);
+  function initMatrix() {
+    // Set canvas width and height properties (not CSS) for proper drawing scale
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    columns = Math.floor(canvas.width / fontSize);
+    drops = [];
+    for (let i = 0; i < columns; i++) {
+      drops[i] = Math.floor(Math.random() * canvas.height / fontSize);
     }
+  }
 
-    function drawMatrix() {
-      ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#FF6B00';
-      ctx.font = fontSize + 'px monospace';
+  function drawMatrix() {
+    // Semi-transparent background to create fading trail effect
+    ctx.fillStyle = 'rgba(10, 10, 10, 0.1)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      for (let i = 0; i < columns; i++) {
-        const symbol = symbols[Math.floor(Math.random() * symbols.length)];
-        ctx.fillText(symbol, i * fontSize, drops[i] * fontSize);
+    ctx.fillStyle = '#FF6B00';
+    ctx.font = fontSize + 'px monospace';
 
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-          drops[i] = 0;
-        }
-        drops[i]++;
+    for (let i = 0; i < columns; i++) {
+      const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+      ctx.fillText(symbol, i * fontSize, drops[i] * fontSize);
+
+      // Reset drop to top randomly after it passes bottom
+      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+        drops[i] = 0;
       }
 
-      requestAnimationFrame(drawMatrix);
+      drops[i]++;
     }
 
-    window.addEventListener('resize', initMatrix);
-    window.onload = () => {
-      initMatrix();
-      drawMatrix();
-    };
-  </script>
+    requestAnimationFrame(drawMatrix);
+  }
+
+  window.addEventListener('resize', () => {
+    initMatrix();
+  });
+
+  window.addEventListener('DOMContentLoaded', () => {
+    initMatrix();
+    drawMatrix();
+  });
+</script>
+
 </body>
 </html>`;
 
