@@ -551,222 +551,208 @@ app.get('/dashboard/view', async (req, res) => {
       .order('created_at', { ascending: false });
 
     const html = `<!DOCTYPE html>
-  <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>TradeAssist A.I Dashboard</title>
-    <style>
-      body, html {
-        margin: 0;
-        padding: 0;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: #0A0A0A;
-        color: #FF914D;
-        overflow-x: hidden;
-        min-height: 100vh;
-      }
-    
-     .glow-icon {
-       width: 120px;
-       height: 120px;
-       margin: 0 auto 1rem auto;
-       display: block;
-       filter: drop-shadow(0 0 10px #FF6B00);
-      }
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TradeAssist A.I Dashboard</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0A0A0A;
+      color: #FF914D;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
 
+    .glow-icon {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 1rem auto;
+      display: block;
+      filter: drop-shadow(0 0 10px #FF6B00);
+    }
 
-      #matrixCanvas {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 0;
-        background: #0A0A0A;
-      }
+    #matrixCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      background: #0A0A0A;
+    }
 
+    main {
+      position: relative;
+      z-index: 10;
+      width: 90%;
+      max-width: 960px;
+      margin: 2rem auto;
+      background: #1E1E1E;
+      border-radius: 16px;
+      box-shadow: 0 0 20px #FF914D99;
+      padding: 1.5rem;
+      box-sizing: border-box;
+    }
+
+    h2 {
+      color: #FF6B00;
+      text-align: center;
+      margin-bottom: 1rem;
+      text-shadow: 0 0 10px #FF914Dbb;
+    }
+
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      margin-bottom: 2rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      color: #FF914D;
+      table-layout: fixed;
+      word-wrap: break-word;
+    }
+
+    th, td {
+      border: 1px solid #FF6B00;
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+      word-break: break-word;
+    }
+
+    th {
+      background: #2a2a2a;
+      color: #FF6B00;
+    }
+
+    tr:nth-child(even) {
+      background-color: rgba(255, 145, 77, 0.05);
+    }
+
+    audio {
+      width: 100%;
+    }
+
+    @media (max-width: 600px) {
       main {
-        position: relative;
-        z-index: 10;
-        width: 90%;
-        max-width: 960px;
-        margin: 2rem auto;
-        background: #1E1E1E;
-        border-radius: 16px;
-        box-shadow: 0 0 20px #FF914D99;
-        padding: 1.5rem;
-        box-sizing: border-box;
-      }
-
-      h2 {
-        color: #FF6B00;
-        text-align: center;
-        margin-bottom: 1rem;
-        text-shadow: 0 0 10px #FF914Dbb;
-      }
-
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 2rem;
-        color: #FF914D;
-        table-layout: fixed;
-        word-break: break-word;
+        width: 95%;
+        padding: 1rem;
+        margin: 1.5rem auto;
       }
 
       th, td {
-        border: 1px solid #FF6B00;
-        padding: 8px;
-        text-align: left;
-        vertical-align: top;
+        font-size: 0.85rem;
       }
 
-      th {
-        background: #2a2a2a;
-        color: #FF6B00;
+      .glow-icon {
+        width: 80px;
+        height: 80px;
       }
-
-      tr:nth-child(even) {
-        background-color: rgba(255, 145, 77, 0.05);
-      }
-
-      audio {
-        width: 100%;
-      }
-
-      @media (max-width: 600px) {
-        main {
-          width: 95%;
-          padding: 1rem;
-          margin: 1.5rem auto;
-        }
-
-        table, th, td {
-          font-size: 0.85rem;
-        }
-
-        td, th {
-          word-break: break-word;
-        }
-
-        audio {
-          max-width: 100%;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <canvas id="matrixCanvas"></canvas>
-
-    <main>
-
+    }
+  </style>
+</head>
+<body>
+  <canvas id="matrixCanvas"></canvas>
+  <main>
     <svg class="glow-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="orangeBolt" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FF6B00" />
-      <stop offset="100%" stop-color="#FF914D" />
-    </linearGradient>
-  </defs>
-  <path d="M32 8c-11 0-20 9-20 20v4c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4v-4c0-11-9-20-20-20z"
-        fill="url(#orangeBolt)"
-        stroke="#FFFFFF"
-        stroke-width="2"/>
-  <path d="M20 36v-4c0-6.6 5.4-12 12-12s12 5.4 12 12v4"
-        fill="none"
-        stroke="#FFFFFF"
-        stroke-width="2"/>
-</svg>
+      <defs>
+        <linearGradient id="orangeBolt" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#FF6B00" />
+          <stop offset="100%" stop-color="#FF914D" />
+        </linearGradient>
+      </defs>
+      <path d="M32 8c-11 0-20 9-20 20v4c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4v-4c0-11-9-20-20-20z"
+            fill="url(#orangeBolt)" stroke="#FFFFFF" stroke-width="2"/>
+      <path d="M20 36v-4c0-6.6 5.4-12 12-12s12 5.4 12 12v4"
+            fill="none" stroke="#FFFFFF" stroke-width="2"/>
+    </svg>
 
-      <h2>📨 Message History for ${phone}</h2>
+    <h2>📨 Message History for ${phone}</h2>
+    <div class="table-container">
       <table>
         <tr><th>Time</th><th>Incoming</th><th>Reply</th></tr>
         ${
           messages?.length
-            ? messages
-                .map(
-                  (msg) =>
-                    `<tr><td>${msg.created_at}</td><td>${msg.incoming}</td><td>${msg.outgoing}</td></tr>`
-                )
-                .join('')
+            ? messages.map(msg =>
+                `<tr><td>${msg.created_at}</td><td>${msg.incoming}</td><td>${msg.outgoing}</td></tr>`
+              ).join('')
             : '<tr><td colspan="3">No messages found.</td></tr>'
         }
       </table>
+    </div>
 
-      <h2>🎧 Voicemail Log</h2>
+    <h2>🎧 Voicemail Log</h2>
+    <div class="table-container">
       <table>
         <tr><th>Time</th><th>Audio</th><th>Transcript</th><th>AI Reply</th></tr>
         ${
           voicemails?.length
-            ? voicemails
-                .map(
-                  (vm) =>
-                    `<tr>
-                      <td>${vm.created_at}</td>
-                      <td>${
-                        vm.recording_url
-                          ? `<audio controls src="${vm.recording_url}"></audio>`
-                          : 'No audio'
-                      }</td>
-                      <td>${vm.transcription || '—'}</td>
-                      <td>${vm.ai_reply || '—'}</td>
-                    </tr>`
-                )
-                .join('')
+            ? voicemails.map(vm =>
+                `<tr>
+                  <td>${vm.created_at}</td>
+                  <td>${vm.recording_url ? `<audio controls src="${vm.recording_url}"></audio>` : 'No audio'}</td>
+                  <td>${vm.transcription || '—'}</td>
+                  <td>${vm.ai_reply || '—'}</td>
+                </tr>`
+              ).join('')
             : '<tr><td colspan="4">No voicemails found.</td></tr>'
         }
       </table>
-    </main>
+    </div>
+  </main>
 
-    <script>
-      const canvas = document.getElementById('matrixCanvas');
-      const ctx = canvas.getContext('2d');
-      const fontSize = 16;
-      let columns, drops;
+  <script>
+    const canvas = document.getElementById('matrixCanvas');
+    const ctx = canvas.getContext('2d');
+    const fontSize = 16;
+    let columns, drops;
+    const letters = 'アァカサタナハマヤラ0123456789$#%@&*!ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-      const letters = 'アァカサタナハマヤラ0123456789$#%@&*!ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    function initMatrix() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      columns = Math.floor(canvas.width / fontSize);
+      drops = Array(columns).fill(1);
+    }
 
-      function initMatrix() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        columns = Math.floor(canvas.width / fontSize);
-        drops = Array(columns).fill(1);
-      }
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      function drawMatrix() {
-        ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#FF6B00';
+      ctx.font = fontSize + 'px monospace';
 
-        ctx.fillStyle = '#FF6B00';
-        ctx.font = fontSize + 'px monospace';
-
-        for (let i = 0; i < columns; i++) {
-          const char = letters.charAt(Math.floor(Math.random() * letters.length));
-          ctx.fillText(char, i * fontSize, drops[i] * fontSize);
-
-          if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-            drops[i] = 0;
-          }
-          drops[i] += 1;
+      for (let i = 0; i < columns; i++) {
+        const char = letters.charAt(Math.floor(Math.random() * letters.length));
+        ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
         }
-
-        requestAnimationFrame(drawMatrix);
+        drops[i]++;
       }
 
-      window.addEventListener('resize', initMatrix);
-      initMatrix();
-      drawMatrix();
-    </script>
-  </body>
-  </html>
-  `;
+      requestAnimationFrame(drawMatrix);
+    }
+
+    window.addEventListener('resize', initMatrix);
+    initMatrix();
+    drawMatrix();
+  </script>
+</body>
+</html>`;
     res.send(html);
   } catch (error) {
     console.error(error);
     res.status(500).send('Internal server error');
   }
 });
-
 
 //call back
 app.post('/call-status', async (req, res) => {
