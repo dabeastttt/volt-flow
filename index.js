@@ -5,6 +5,10 @@ const { OpenAI } = require('openai');
 const twilio = require('twilio');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const fs = require('fs');
+const os = require('os');
+const fetch = require('node-fetch'); // for CommonJS, require like this
+
 const { saveVoicemail } = require('./db');
 const {
   logMessage,
@@ -14,6 +18,7 @@ const {
   getCustomerByPhone,
   saveCustomer,
 } = require('./db');
+
 const cron = require('node-cron');
 
 const { createClient } = require('@supabase/supabase-js');
@@ -22,7 +27,6 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_ANON_KEY
 );
-
 
 const app = express();
 const port = process.env.PORT || 10000;
@@ -370,6 +374,7 @@ app.get('/dashboard', (req, res) => {
       width: 100%; height: 100%;
       z-index: 0;
       background: #0A0A0A;
+      display: block; /* fix */
     }
 
     main {
@@ -493,7 +498,7 @@ function initMatrix() {
   columns = Math.floor(canvas.width / fontSize);
   drops = [];
   for (let i = 0; i < columns; i++) {
-    drops[i] = Math.floor(Math.random() * canvas.height / fontSize);
+    drops[i] = Math.floor(Math.random() * (canvas.height / fontSize));
   }
 }
 
@@ -515,12 +520,12 @@ function drawMatrix() {
   requestAnimationFrame(drawMatrix);
 }
 
-window.addEventListener('resize', initMatrix);
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('resize', () => {
   initMatrix();
-  drawMatrix();
 });
 
+initMatrix();
+drawMatrix();
 </script>
 
 </body>
@@ -585,6 +590,7 @@ app.get('/dashboard/view', async (req, res) => {
       height: 100%;
       z-index: 0;
       background: #0A0A0A;
+      display: block;
     }
 
     main {
@@ -687,8 +693,7 @@ app.get('/dashboard/view', async (req, res) => {
                   <td>${msg.created_at || '—'}</td>
                   <td>${escapeHTML(msg.incoming || '—')}</td>
                   <td>${escapeHTML(msg.outgoing || '—')}</td>
-                </tr>`
-              ).join('')
+                </tr>`).join('')
             : '<tr><td colspan="3">No messages found.</td></tr>'
         }
       </table>
@@ -706,8 +711,7 @@ app.get('/dashboard/view', async (req, res) => {
                   <td>${vm.recording_url ? `<audio controls src="${vm.recording_url}"></audio>` : 'No audio'}</td>
                   <td>${escapeHTML(vm.transcription || '—')}</td>
                   <td>${escapeHTML(vm.ai_reply || '—')}</td>
-                </tr>`
-              ).join('')
+                </tr>`).join('')
             : '<tr><td colspan="4">No voicemails found.</td></tr>'
         }
       </table>
@@ -733,7 +737,7 @@ function initMatrix() {
   columns = Math.floor(canvas.width / fontSize);
   drops = [];
   for (let i = 0; i < columns; i++) {
-    drops[i] = Math.floor(Math.random() * canvas.height / fontSize);
+    drops[i] = Math.floor(Math.random() * (canvas.height / fontSize));
   }
 }
 
@@ -755,19 +759,19 @@ function drawMatrix() {
   requestAnimationFrame(drawMatrix);
 }
 
-window.addEventListener('resize', initMatrix);
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('resize', () => {
   initMatrix();
-  drawMatrix();
 });
+
+initMatrix();
+drawMatrix();
 </script>
 
 </body>
 </html>`;
-
     res.send(html);
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error('Error loading dashboard:', err.message);
     res.status(500).send('Internal server error');
   }
 });
@@ -839,13 +843,56 @@ app.post('/voice', (req, res) => {
 });
 
 
-//voicemail
+// Helper function to download recording and transcribe with Whisper
+async function transcribeRecording(url) {
+  if (!url) throw new Error('No recording URL provided for transcription');
+
+  // Download file locally
+  const response = await fetch(url);
+  if (!response.ok) throw new Error('Failed to download audio');
+
+  // Temp file path
+  const tempFilePath = path.join(os.tmpdir(), `voicemail_${Date.now()}.mp3`);
+
+  // Stream response to file
+  const fileStream = fs.createWriteStream(tempFilePath);
+  await new Promise((resolve, reject) => {
+    response.body.pipe(fileStream);
+    response.body.on('error', reject);
+    fileStream.on('finish', resolve);
+  });
+
+  // Call OpenAI Whisper API
+  const transcriptionResponse = await openai.audio.transcriptions.create({
+    file: fs.createReadStream(tempFilePath),
+    model: 'whisper-1',
+  });
+
+  // Cleanup temp file
+  fs.unlink(tempFilePath, err => {
+    if (err) console.warn('Failed to delete temp file:', tempFilePath);
+  });
+
+  return transcriptionResponse.text;
+}
+
+
+// Voicemail route
 app.post('/voicemail', async (req, res) => {
   const rawRecordingUrl = req.body.RecordingUrl || '';
   const recording_url = rawRecordingUrl ? `${rawRecordingUrl}.mp3` : '';
   const fromRaw = req.body.From || '';
   const from = formatPhoneNumber(fromRaw);
   const tradieNumber = process.env.TRADIE_PHONE_NUMBER;
+
+  let transcription = '';
+
+  try {
+    transcription = await transcribeRecording(recording_url);
+  } catch (err) {
+    console.error('❌ Failed to transcribe voicemail:', err);
+    transcription = '[Transcription unavailable]';
+  }
 
   console.log(`🎙️ Voicemail from ${from}: ${transcription}`);
   console.log(`🔗 Recording URL: ${recording_url}`);
@@ -855,7 +902,11 @@ app.post('/voicemail', async (req, res) => {
 
   try {
     // 1. Send intro SMS
-    await twilioClient.messages.create({ body: introMsg, from: process.env.TWILIO_PHONE_NUMBER, to: from });
+    await twilioClient.messages.create({
+      body: introMsg,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to: from,
+    });
     console.log(`✅ Sent intro to ${from}`);
 
     // 2. Flag introduction in DB
@@ -876,7 +927,10 @@ app.post('/voicemail', async (req, res) => {
       const response = await openai.chat.completions.create({
         model: 'gpt-3.5-turbo',
         messages: [
-          { role: 'system', content: 'You are a helpful Aussie tradie assistant replying to voicemail...' },
+          {
+            role: 'system',
+            content: 'You are a helpful Aussie tradie assistant replying to voicemail...',
+          },
           { role: 'user', content: transcription },
         ],
       });
@@ -895,7 +949,11 @@ app.post('/voicemail', async (req, res) => {
     }
 
     // 5. Send AI reply to customer
-    await twilioClient.messages.create({ body: reply, from: process.env.TWILIO_PHONE_NUMBER, to: from });
+    await twilioClient.messages.create({
+      body: reply,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to: from,
+    });
     console.log(`✅ Sent AI reply to ${from}`);
 
     // 6. Notify tradie
@@ -915,7 +973,7 @@ app.post('/voicemail', async (req, res) => {
       phone: from,
       transcription,
       ai_reply: reply,
-      recording_url, // ✅ Save this in Supabase
+      recording_url,
     });
     console.log('💾 Voicemail saved to Supabase');
 
