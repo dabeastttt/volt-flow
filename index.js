@@ -343,133 +343,149 @@ app.post('/register', async (req, res) => {
 
 // 📥 Simple Login Page
 app.get('/dashboard', (req, res) => {
-  const html = `
-  <!DOCTYPE html>
-  <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>TradeAssist A.I — Login</title>
-    <style>
-      body, html {
-        margin: 0;
-        padding: 0;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: #0A0A0A;
-        color: #FF914D;
-        overflow-x: hidden;
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        position: relative;
-      }
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TradeAssist A.I — Login</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0A0A0A;
+      color: #FF914D;
+      overflow-x: hidden;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
 
-      #matrixCanvas {
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        z-index: 0;
-        background: #0A0A0A;
-      }
+    #matrixCanvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      background: #0A0A0A;
+    }
 
-      main {
-        position: relative;
-        z-index: 10;
-        background: #1E1E1E;
-        padding: 2rem 3rem;
-        border-radius: 16px;
-        box-shadow: 0 0 20px #FF914D99;
-        text-align: center;
-        width: 320px;
-      }
+    main {
+      position: relative;
+      z-index: 10;
+      background: #1E1E1E;
+      padding: 2rem 3rem;
+      border-radius: 16px;
+      box-shadow: 0 0 20px #FF914D99;
+      text-align: center;
+      width: 320px;
+    }
 
-      h1 {
-        margin-bottom: 1.5rem;
-        text-shadow: 0 0 10px #FF914Dbb;
-        color: #FF6B00;
-      }
+    h1 {
+      margin-bottom: 1.5rem;
+      text-shadow: 0 0 10px #FF914Dbb;
+      color: #FF6B00;
+    }
 
-      input[type="text"] {
-        padding: 0.5rem;
-        border-radius: 8px;
-        border: none;
-        width: 100%;
-        margin-bottom: 1.5rem;
-        font-size: 1rem;
-        box-sizing: border-box;
-      }
+    input[type="text"] {
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      border: 2px solid #FF6B00; /* full orange border */
+      width: 100%;
+      margin-bottom: 1.5rem;
+      font-size: 1rem;
+      box-sizing: border-box;
+      background-color: #1E1E1E; /* dark background */
+      color: #FFFFFF;
+      box-shadow: 0 0 10px #FF6B00; /* orange glow */
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
 
-      button {
-        background: #FF914D;
-        border: none;
-        color: #fff;
-        padding: 0.7rem 1.2rem;
-        font-size: 1rem;
-        border-radius: 8px;
-        cursor: pointer;
-        width: 100%;
-        box-shadow: 0 0 10px #FF914Dcc;
-        transition: background 0.3s ease;
-      }
-      button:hover {
-        background: #ffb066;
-        box-shadow: 0 0 20px #ffb066cc;
-      }
-    </style>
-  </head>
-  <body>
-    <canvas id="matrixCanvas"></canvas>
-    <main>
-      <h1>🔐 Enter Your Phone Number</h1>
-      <form action="/dashboard/view" method="GET" autocomplete="off">
-        <input type="text" name="phone" placeholder="0400 000 000" required />
-        <button type="submit">View Dashboard</button>
-      </form>
-    </main>
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #FF914D;
+      box-shadow: 0 0 15px #FF914D;
+      background-color: #2a2a2a;
+    }
 
-    <script>
-      const canvas = document.getElementById('matrixCanvas');
-      const ctx = canvas.getContext('2d');
-      const fontSize = 16;
-      let columns, drops;
+    button {
+      background: #000000; /* black background */
+      border: none;
+      color: #FFFFFF;
+      padding: 0.7rem 1.2rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      box-shadow: none;
+      transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+      user-select: none;
+    }
 
-      const letters = 'アァカサタナハマヤラ0123456789$#%@&*!ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    button:hover,
+    button:focus {
+      background: #FFFFFF; /* white background on hover/focus */
+      color: #FF6B00;      /* orange text */
+      box-shadow: 0 0 15px #FF6B00;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="matrixCanvas"></canvas>
+  <main>
+    <h1>Enter Your Phone Number</h1>
+    <form action="/dashboard/view" method="GET" autocomplete="off">
+      <input type="text" name="phone" placeholder="0400 000 000" required />
+      <button type="submit">View Dashboard</button>
+    </form>
+  </main>
 
-      function initMatrix() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        columns = Math.floor(canvas.width / fontSize);
-        drops = Array(columns).fill(1);
-      }
+  <script>
+    const canvas = document.getElementById('matrixCanvas');
+    const ctx = canvas.getContext('2d');
+    const fontSize = 16;
+    let columns, drops;
 
-      function drawMatrix() {
-        ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const letters = 'アァカサタナハマヤラ0123456789$#%@&*!ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-        ctx.fillStyle = '#FF6B00';
-        ctx.font = fontSize + 'px monospace';
+    function initMatrix() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      columns = Math.floor(canvas.width / fontSize);
+      drops = Array(columns).fill(1);
+    }
 
-        for (let i = 0; i < columns; i++) {
-          const char = letters.charAt(Math.floor(Math.random() * letters.length));
-          ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-          if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-            drops[i] = 0;
-          }
-          drops[i] += 1.5;
+      ctx.fillStyle = '#FF6B00';
+      ctx.font = fontSize + 'px monospace';
+
+      for (let i = 0; i < columns; i++) {
+        const char = letters.charAt(Math.floor(Math.random() * letters.length));
+        ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
         }
-
-        requestAnimationFrame(drawMatrix);
+        drops[i] += 1.5;
       }
 
-      window.addEventListener('resize', initMatrix);
-      initMatrix();
-      drawMatrix();
-    </script>
-  </body>
-  </html>
-  `;
+      requestAnimationFrame(drawMatrix);
+    }
+
+    window.addEventListener('resize', initMatrix);
+    initMatrix();
+    drawMatrix();
+  </script>
+</body>
+</html>
+`;
+
   res.send(html);
 });
 
