@@ -341,9 +341,70 @@ app.post('/register', async (req, res) => {
   }
 });
 
+// 📥 Simple Login Page
+app.get('/dashboard', (req, res) => {
+  const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>TradeAssist A.I — Login</title>
+      <style>
+        body {
+          background: #0A0A0A;
+          color: #FF914D;
+          font-family: sans-serif;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100vh;
+          margin: 0;
+        }
+        h1 {
+          margin-bottom: 1rem;
+        }
+        form {
+          background: #1E1E1E;
+          padding: 2rem;
+          border-radius: 12px;
+          box-shadow: 0 0 20px #FF914D88;
+        }
+        input {
+          padding: 0.5rem;
+          border-radius: 8px;
+          border: none;
+          width: 250px;
+          margin-bottom: 1rem;
+          font-size: 1rem;
+        }
+        button {
+          background: #FF914D;
+          border: none;
+          color: #fff;
+          padding: 0.6rem 1.2rem;
+          font-size: 1rem;
+          border-radius: 8px;
+          cursor: pointer;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>🔐 Enter Your Phone Number</h1>
+      <form action="/dashboard/view" method="GET">
+        <input type="text" name="phone" placeholder="+61412345678" required />
+        <br />
+        <button type="submit">View Dashboard</button>
+      </form>
+    </body>
+    </html>
+  `;
+  res.send(html);
+});
 
-// 📊 View dashboard (basic HTML)
-app.get('/dashboard', async (req, res) => {
+// 📊 View dashboard (mobile-friendly HTML)
+app.get('/dashboard/view', async (req, res) => {
   const { phone: phoneRaw } = req.query;
   if (!phoneRaw) return res.status(400).send('Phone number required');
 
@@ -362,8 +423,7 @@ app.get('/dashboard', async (req, res) => {
       .eq('phone', phone)
       .order('created_at', { ascending: false });
 
-    const html = `
-  <!DOCTYPE html>
+    const html = `<!DOCTYPE html>
   <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -393,13 +453,14 @@ app.get('/dashboard', async (req, res) => {
       main {
         position: relative;
         z-index: 10;
+        width: 90%;
         max-width: 960px;
-        margin: 4rem auto;
+        margin: 2rem auto;
         background: #1E1E1E;
         border-radius: 16px;
         box-shadow: 0 0 20px #FF914D99;
-        padding: 2rem 3rem;
-        color: #FF914D;
+        padding: 1.5rem;
+        box-sizing: border-box;
       }
 
       h2 {
@@ -414,12 +475,15 @@ app.get('/dashboard', async (req, res) => {
         border-collapse: collapse;
         margin-bottom: 2rem;
         color: #FF914D;
+        table-layout: fixed;
+        word-break: break-word;
       }
 
       th, td {
         border: 1px solid #FF6B00;
         padding: 8px;
         text-align: left;
+        vertical-align: top;
       }
 
       th {
@@ -437,11 +501,21 @@ app.get('/dashboard', async (req, res) => {
 
       @media (max-width: 600px) {
         main {
-          padding: 1.5rem;
-          margin: 2rem 1rem;
+          width: 95%;
+          padding: 1rem;
+          margin: 1.5rem auto;
         }
+
         table, th, td {
           font-size: 0.85rem;
+        }
+
+        td, th {
+          word-break: break-word;
+        }
+
+        audio {
+          max-width: 100%;
         }
       }
     </style>
@@ -531,16 +605,14 @@ app.get('/dashboard', async (req, res) => {
     </script>
   </body>
   </html>
-`;
-
-   // Send the HTML response
+  `;
     res.send(html);
-
   } catch (error) {
     console.error(error);
     res.status(500).send('Internal server error');
   }
 });
+
 
 //call back
 app.post('/call-status', async (req, res) => {
