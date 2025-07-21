@@ -347,7 +347,7 @@ app.get('/dashboard', (req, res) => {
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" /> 
   <title>TradeAssist A.I — Login</title>
   <style>
     body, html {
@@ -372,7 +372,7 @@ app.get('/dashboard', (req, res) => {
       background: #0A0A0A;
     }
 
-     main {
+    main {
       position: relative;
       z-index: 10;
       background: #1E1E1E;
@@ -381,7 +381,7 @@ app.get('/dashboard', (req, res) => {
       box-shadow:
        0 0 12px 2px rgba(255, 145, 77, 0.4),
        0 0 20px 4px rgba(255, 107, 0, 0.25);
-       text-align: center;
+      text-align: center;
       width: 90%;
       max-width: 340px;
       color: #FFFFFF;
@@ -389,8 +389,6 @@ app.get('/dashboard', (req, res) => {
       margin: auto;
       box-sizing: border-box;
     }
-
-
 
     .glow-icon {
       width: 120px;
@@ -403,12 +401,11 @@ app.get('/dashboard', (req, res) => {
       margin-bottom: 1.5rem;
       text-shadow: 0 0 10px #FF914Dbb;
       color: #FF6B00;
-      font-family: inherit;
       font-weight: 900;
       font-size: 2rem;
     }
 
-    input[type="text"] {
+    input[type="tel"] {
       padding: 0.75rem 1rem;
       border-radius: 10px;
       border: 2px solid #FF6B00;
@@ -419,11 +416,10 @@ app.get('/dashboard', (req, res) => {
       background-color: #1E1E1E;
       color: #FFFFFF;
       box-shadow: 0 0 8px 3px #FF6B00;
-      font-family: inherit;
       transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
     }
 
-    input[type="text"]:focus {
+    input[type="tel"]:focus {
       outline: none;
       border-color: #FF914D;
       box-shadow: 0 0 12px 4px #FF914D;
@@ -440,7 +436,6 @@ app.get('/dashboard', (req, res) => {
       border: none;
       border-radius: 12px;
       cursor: pointer;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       box-shadow: 0 6px 16px #FF6B0088;
       transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
       margin-top: 1rem;
@@ -451,16 +446,15 @@ app.get('/dashboard', (req, res) => {
       background: #FF914D;
       color: #FFFFFF;
       box-shadow: 0 8px 20px #FF6B0099;
-     outline: none;
+      outline: none;
     }
-
   </style>
 </head>
 <body>
   <canvas id="matrixCanvas"></canvas>
 
   <main>
-    <svg class="glow-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+    <svg class="glow-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <defs>
         <linearGradient id="orangeBolt" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stop-color="#FF6B00" />
@@ -468,44 +462,27 @@ app.get('/dashboard', (req, res) => {
         </linearGradient>
       </defs>
       <path d="M32 8c-11 0-20 9-20 20v4c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4v-4c0-11-9-20-20-20z"
-            fill="url(#orangeBolt)"
-            stroke="#FFFFFF"
-            stroke-width="2"/>
+            fill="url(#orangeBolt)" stroke="#FFFFFF" stroke-width="2"/>
       <path d="M20 36v-4c0-6.6 5.4-12 12-12s12 5.4 12 12v4"
-            fill="none"
-            stroke="#FFFFFF"
-            stroke-width="2"/>
+            fill="none" stroke="#FFFFFF" stroke-width="2"/>
     </svg>
 
     <h1>Enter Your Phone Number</h1>
     <form action="/dashboard/view" method="GET" autocomplete="off">
-      <input type="text" name="phone" placeholder="0400 000 000" required />
+      <input type="tel" name="phone" pattern="[0-9\\s]+" placeholder="0400 000 000" required />
       <button type="submit">View Dashboard</button>
     </form>
   </main>
 
- <script>
+<script>
   const canvas = document.getElementById('matrixCanvas');
   const ctx = canvas.getContext('2d');
   const fontSize = 20;
   let columns, drops;
 
-  // Tool-inspired symbols (Unicode characters, including wrench + toolbox)
   const symbols = [
-    '⊗', // bolt/nut
-    '⛏', // pickaxe
-    '⚒', // crossed hammers
-    '⛓', // chain
-    '🛠', // hammer & wrench combo
-    '🗜', // clamp/wrench
-    '⚙', // gear
-    '⛭', // gear alt
-    '✚', // screw tip
-    '╬', // steel bar
-    '♯', // bolt sharp
-    '†', // bolt cross
-    '☗', // chisel edge
-    '╧', // wrench jaw
+    '⊗', '⛏', '⚒', '⛓', '🛠', '🗜', '⚙', '⛭',
+    '✚', '╬', '♯', '†', '☗', '╧',
     '#', '%', '&', '*', '+', '=', '-', '|', '/', '\\'
   ];
 
@@ -529,22 +506,23 @@ app.get('/dashboard', (req, res) => {
       if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
         drops[i] = 0;
       }
-      drops[i] += 1;
+      drops[i]++;
     }
 
     requestAnimationFrame(drawMatrix);
   }
 
   window.addEventListener('resize', initMatrix);
-  initMatrix();
-  drawMatrix();
+  window.onload = () => {
+    initMatrix();
+    drawMatrix();
+  };
 </script>
 </body>
-</html>
-`;
-
+</html>`;
   res.send(html);
 });
+
 
 // 📊 View dashboard (mobile-friendly HTML)
 app.get('/dashboard/view', async (req, res) => {
@@ -552,6 +530,9 @@ app.get('/dashboard/view', async (req, res) => {
   if (!phoneRaw) return res.status(400).send('Phone number required');
 
   const phone = formatPhoneNumber(phoneRaw);
+  const escapeHTML = str => str.replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+  })[c]);
 
   try {
     const { data: messages } = await supabase
@@ -690,14 +671,18 @@ app.get('/dashboard/view', async (req, res) => {
             fill="none" stroke="#FFFFFF" stroke-width="2"/>
     </svg>
 
-    <h2>📨 Message History for ${phone}</h2>
+    <h2>📨 Message History for ${escapeHTML(phone)}</h2>
     <div class="table-container">
       <table>
         <tr><th>Time</th><th>Incoming</th><th>Reply</th></tr>
         ${
           messages?.length
             ? messages.map(msg =>
-                `<tr><td>${msg.created_at}</td><td>${msg.incoming}</td><td>${msg.outgoing}</td></tr>`
+                `<tr>
+                  <td>${msg.created_at || '—'}</td>
+                  <td>${escapeHTML(msg.incoming || '—')}</td>
+                  <td>${escapeHTML(msg.outgoing || '—')}</td>
+                </tr>`
               ).join('')
             : '<tr><td colspan="3">No messages found.</td></tr>'
         }
@@ -712,10 +697,10 @@ app.get('/dashboard/view', async (req, res) => {
           voicemails?.length
             ? voicemails.map(vm =>
                 `<tr>
-                  <td>${vm.created_at}</td>
+                  <td>${vm.created_at || '—'}</td>
                   <td>${vm.recording_url ? `<audio controls src="${vm.recording_url}"></audio>` : 'No audio'}</td>
-                  <td>${vm.transcription || '—'}</td>
-                  <td>${vm.ai_reply || '—'}</td>
+                  <td>${escapeHTML(vm.transcription || '—')}</td>
+                  <td>${escapeHTML(vm.ai_reply || '—')}</td>
                 </tr>`
               ).join('')
             : '<tr><td colspan="4">No voicemails found.</td></tr>'
@@ -725,62 +710,52 @@ app.get('/dashboard/view', async (req, res) => {
   </main>
 
   <script>
-  const canvas = document.getElementById('matrixCanvas');
-  const ctx = canvas.getContext('2d');
-  const fontSize = 20;
-  let columns, drops;
+    const canvas = document.getElementById('matrixCanvas');
+    const ctx = canvas.getContext('2d');
+    const fontSize = 20;
+    let columns, drops;
 
-  // Tool-inspired symbols (Unicode characters, including wrench + toolbox)
-  const symbols = [
-    '⊗', // bolt/nut
-    '⛏', // pickaxe
-    '⚒', // crossed hammers
-    '⛓', // chain
-    '🛠', // hammer & wrench combo
-    '🗜', // clamp/wrench
-    '⚙', // gear
-    '⛭', // gear alt
-    '✚', // screw tip
-    '╬', // steel bar
-    '♯', // bolt sharp
-    '†', // bolt cross
-    '☗', // chisel edge
-    '╧', // wrench jaw
-    '#', '%', '&', '*', '+', '=', '-', '|', '/', '\\'
-  ];
+    const symbols = [
+      '⊗', '⛏', '⚒', '⛓', '🛠', '🗜', '⚙', '⛭',
+      '✚', '╬', '♯', '†', '☗', '╧',
+      '#', '%', '&', '*', '+', '=', '-', '|', '/', '\\'
+    ];
 
-  function initMatrix() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    columns = Math.floor(canvas.width / fontSize);
-    drops = Array(columns).fill(1);
-  }
-
-  function drawMatrix() {
-    ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#FF6B00';
-    ctx.font = fontSize + 'px monospace';
-
-    for (let i = 0; i < columns; i++) {
-      const symbol = symbols[Math.floor(Math.random() * symbols.length)];
-      ctx.fillText(symbol, i * fontSize, drops[i] * fontSize);
-
-      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-        drops[i] = 0;
-      }
-      drops[i] += 1;
+    function initMatrix() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      columns = Math.floor(canvas.width / fontSize);
+      drops = Array(columns).fill(1);
     }
 
-    requestAnimationFrame(drawMatrix);
-  }
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#FF6B00';
+      ctx.font = fontSize + 'px monospace';
 
-  window.addEventListener('resize', initMatrix);
-  initMatrix();
-  drawMatrix();
-</script>
+      for (let i = 0; i < columns; i++) {
+        const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+        ctx.fillText(symbol, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+
+      requestAnimationFrame(drawMatrix);
+    }
+
+    window.addEventListener('resize', initMatrix);
+    window.onload = () => {
+      initMatrix();
+      drawMatrix();
+    };
+  </script>
 </body>
 </html>`;
+
     res.send(html);
   } catch (error) {
     console.error(error);
