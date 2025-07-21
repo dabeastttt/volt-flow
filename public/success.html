@@ -148,47 +148,59 @@
   </div>
 
   <script>
-    const canvas = document.getElementById('matrixCanvas');
-    const ctx = canvas.getContext('2d');
-    const fontSize = 16;
-    let width, height;
-    let columns;
-    const letters = 'アァカサタナハマヤラ0123456789$#%@&*!ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    let drops = [];
+  const canvas = document.getElementById('matrixCanvas');
+  const ctx = canvas.getContext('2d');
+  const fontSize = 20;
+  let columns, drops;
 
-    function resize() {
-      width = window.innerWidth;
-      height = window.innerHeight;
-      canvas.width = width;
-      canvas.height = height;
-      columns = Math.floor(width / fontSize);
-      drops = Array(columns).fill(1);
-    }
+  // Tool-inspired symbols (Unicode characters, including wrench + toolbox)
+  const symbols = [
+    '⊗', // bolt/nut
+    '⛏', // pickaxe
+    '⚒', // crossed hammers
+    '⛓', // chain
+    '🛠', // hammer & wrench combo
+    '🗜', // clamp/wrench
+    '⚙', // gear
+    '⛭', // gear alt
+    '✚', // screw tip
+    '╬', // steel bar
+    '♯', // bolt sharp
+    '†', // bolt cross
+    '☗', // chisel edge
+    '╧', // wrench jaw
+    '#', '%', '&', '*', '+', '=', '-', '|', '/', '\\'
+  ];
 
-    function draw() {
-      ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
-      ctx.fillRect(0, 0, width, height);
+  function initMatrix() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    columns = Math.floor(canvas.width / fontSize);
+    drops = Array(columns).fill(1);
+  }
 
-      ctx.fillStyle = '#FF6B00';
-      ctx.font = `${fontSize}px monospace`;
+  function drawMatrix() {
+    ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#FF6B00';
+    ctx.font = fontSize + 'px monospace';
 
-      for (let i = 0; i < columns; i++) {
-        const char = letters.charAt(Math.floor(Math.random() * letters.length));
-        ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+    for (let i = 0; i < columns; i++) {
+      const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+      ctx.fillText(symbol, i * fontSize, drops[i] * fontSize);
 
-        if (drops[i] * fontSize > height && Math.random() > 0.975) {
-          drops[i] = 0;
-        }
-
-        drops[i] += 1;
+      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+        drops[i] = 0;
       }
-
-      requestAnimationFrame(draw);
+      drops[i] += 1;
     }
 
-    resize();
-    draw();
-    window.addEventListener('resize', resize);
-  </script>
+    requestAnimationFrame(drawMatrix);
+  }
+
+  window.addEventListener('resize', initMatrix);
+  initMatrix();
+  drawMatrix();
+</script>
 </body>
 </html>

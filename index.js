@@ -484,45 +484,66 @@ app.get('/dashboard', (req, res) => {
     </form>
   </main>
 
-  <script>
-    const canvas = document.getElementById('matrixCanvas');
-    const ctx = canvas.getContext('2d');
-    const fontSize = 16;
-    let columns, drops;
+ <script>
+  const canvas = document.getElementById('matrixCanvas');
+  const ctx = canvas.getContext('2d');
+  const fontSize = 20;
+  let columns, drops;
 
-    const letters = 'アァカサタナハマヤラ0123456789$#%@&*!ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  // Tool-inspired symbols (Unicode characters, including wrench + toolbox)
+  const symbols = [
+    '⊗', // bolt/nut
+    '⛏', // pickaxe
+    '⚒', // crossed hammers
+    '⛓', // chain
+    '🛠', // hammer & wrench combo
+    '🗜', // clamp/wrench
+    '⚙', // gear
+    '⛭', // gear alt
+    '✚', // screw tip
+    '╬', // steel bar
+    '♯', // bolt sharp
+    '†', // bolt cross
+    '☗', // chisel edge
+    '╧', // wrench jaw
+    '#', '%', '&', '*', '+', '=', '-', '|', '/', '\\'
+  ];
 
-    function initMatrix() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      columns = Math.floor(canvas.width / fontSize);
-      drops = Array(columns).fill(1);
-    }
+  function initMatrix() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    columns = Math.floor(canvas.width / fontSize);
+    drops = Array(columns).fill(1);
+  }
 
-    function drawMatrix() {
-      ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+  function drawMatrix() {
+    ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#FF6B00';
+    ctx.font = fontSize + 'px monospace';
 
-      ctx.fillStyle = '#FF6B00';
-      ctx.font = fontSize + 'px monospace';
+    for (let i = 0; i < columns; i++) {
+      const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+      ctx.fillText(symbol, i * fontSize, drops[i] * fontSize);
 
-      for (let i = 0; i < columns; i++) {
-        const char = letters.charAt(Math.floor(Math.random() * letters.length));
-        ctx.fillText(char, i * fontSize, drops[i] * fontSize);
-
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-          drops[i] = 0;
-        }
-        drops[i] += 1;
+      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+        drops[i] = 0;
       }
-
-      requestAnimationFrame(drawMatrix);
+      drops[i] += 1;
     }
 
-    window.addEventListener('resize', initMatrix);
-    initMatrix();
-    drawMatrix();
-  </script>
+    requestAnimationFrame(drawMatrix);
+  }
+
+  window.addEventListener('resize', initMatrix);
+  initMatrix();
+  drawMatrix();
+</script>
+
+  window.addEventListener('resize', initMatrix);
+  initMatrix();
+  drawMatrix();
+</script>
 </body>
 </html>
 `;
@@ -709,42 +730,60 @@ app.get('/dashboard/view', async (req, res) => {
   </main>
 
   <script>
-    const canvas = document.getElementById('matrixCanvas');
-    const ctx = canvas.getContext('2d');
-    const fontSize = 16;
-    let columns, drops;
-    const letters = 'アァカサタナハマヤラ0123456789$#%@&*!ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const canvas = document.getElementById('matrixCanvas');
+  const ctx = canvas.getContext('2d');
+  const fontSize = 20;
+  let columns, drops;
 
-    function initMatrix() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      columns = Math.floor(canvas.width / fontSize);
-      drops = Array(columns).fill(1);
-    }
+  // Tool-inspired symbols (Unicode characters, including wrench + toolbox)
+  const symbols = [
+    '⊗', // bolt/nut
+    '⛏', // pickaxe
+    '⚒', // crossed hammers
+    '⛓', // chain
+    '🛠', // hammer & wrench combo
+    '🗜', // clamp/wrench
+    '⚙', // gear
+    '⛭', // gear alt
+    '✚', // screw tip
+    '╬', // steel bar
+    '♯', // bolt sharp
+    '†', // bolt cross
+    '☗', // chisel edge
+    '╧', // wrench jaw
+    '#', '%', '&', '*', '+', '=', '-', '|', '/', '\\'
+  ];
 
-    function drawMatrix() {
-      ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+  function initMatrix() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    columns = Math.floor(canvas.width / fontSize);
+    drops = Array(columns).fill(1);
+  }
 
-      ctx.fillStyle = '#FF6B00';
-      ctx.font = fontSize + 'px monospace';
+  function drawMatrix() {
+    ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#FF6B00';
+    ctx.font = fontSize + 'px monospace';
 
-      for (let i = 0; i < columns; i++) {
-        const char = letters.charAt(Math.floor(Math.random() * letters.length));
-        ctx.fillText(char, i * fontSize, drops[i] * fontSize);
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-          drops[i] = 0;
-        }
-        drops[i]++;
+    for (let i = 0; i < columns; i++) {
+      const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+      ctx.fillText(symbol, i * fontSize, drops[i] * fontSize);
+
+      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+        drops[i] = 0;
       }
-
-      requestAnimationFrame(drawMatrix);
+      drops[i] += 1;
     }
 
-    window.addEventListener('resize', initMatrix);
-    initMatrix();
-    drawMatrix();
-  </script>
+    requestAnimationFrame(drawMatrix);
+  }
+
+  window.addEventListener('resize', initMatrix);
+  initMatrix();
+  drawMatrix();
+</script>
 </body>
 </html>`;
     res.send(html);
