@@ -378,9 +378,16 @@ app.get('/dashboard', (req, res) => {
       background: #1E1E1E;
       padding: 2rem 3rem;
       border-radius: 16px;
-      box-shadow: 0 0 20px #FF914D99;
+      box-shadow: 0 0 30px 5px #FF914D; /* full glow all sides */
       text-align: center;
       width: 320px;
+    }
+
+    .glow-icon {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 1rem;
+      filter: drop-shadow(0 0 8px #FF6B00);
     }
 
     h1 {
@@ -392,14 +399,14 @@ app.get('/dashboard', (req, res) => {
     input[type="text"] {
       padding: 0.75rem 1rem;
       border-radius: 10px;
-      border: 2px solid #FF6B00; /* full orange border */
+      border: 2px solid #FF6B00;
       width: 100%;
       margin-bottom: 1.5rem;
       font-size: 1rem;
       box-sizing: border-box;
-      background-color: #1E1E1E; /* dark background */
+      background-color: #1E1E1E;
       color: #FFFFFF;
-      box-shadow: 0 0 8px 3px #FF6B00; /* orange glow fully around */
+      box-shadow: 0 0 8px 3px #FF6B00;
       transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
     }
 
@@ -411,7 +418,7 @@ app.get('/dashboard', (req, res) => {
     }
 
     button {
-      background: #FF6B00; /* orange background */
+      background: #FF6B00;
       border: none;
       color: #FFFFFF;
       padding: 0.7rem 1.2rem;
@@ -419,15 +426,15 @@ app.get('/dashboard', (req, res) => {
       border-radius: 8px;
       cursor: pointer;
       width: 100%;
-      box-shadow: 0 0 10px 3px #FF6B00; /* orange glow */
+      box-shadow: 0 0 10px 3px #FF6B00;
       transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
       user-select: none;
     }
 
     button:hover,
     button:focus {
-      background: #FFFFFF; /* white background on hover/focus */
-      color: #FF6B00;      /* orange text */
+      background: #FFFFFF;
+      color: #FF6B00;
       box-shadow: 0 0 15px 5px #FF6B00;
       outline: none;
     }
@@ -435,7 +442,25 @@ app.get('/dashboard', (req, res) => {
 </head>
 <body>
   <canvas id="matrixCanvas"></canvas>
+
   <main>
+    <svg class="glow-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="orangeBolt" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#FF6B00" />
+          <stop offset="100%" stop-color="#FF914D" />
+        </linearGradient>
+      </defs>
+      <path d="M32 8c-11 0-20 9-20 20v4c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4v-4c0-11-9-20-20-20z"
+            fill="url(#orangeBolt)"
+            stroke="#FFFFFF"
+            stroke-width="2"/>
+      <path d="M20 36v-4c0-6.6 5.4-12 12-12s12 5.4 12 12v4"
+            fill="none"
+            stroke="#FFFFFF"
+            stroke-width="2"/>
+    </svg>
+
     <h1>Enter Your Phone Number</h1>
     <form action="/dashboard/view" method="GET" autocomplete="off">
       <input type="text" name="phone" placeholder="0400 000 000" required />
