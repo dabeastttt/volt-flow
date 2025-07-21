@@ -355,7 +355,7 @@ app.get('/dashboard', (req, res) => {
       padding: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: #0A0A0A;
-      color: #FF914D;
+      color: #FFFFFF;
       overflow-x: hidden;
       height: 100vh;
       display: flex;
@@ -373,16 +373,19 @@ app.get('/dashboard', (req, res) => {
     }
 
     main {
-     position: relative;
-     z-index: 10;
-     background: #1E1E1E;
-     padding: 2rem 3rem;
-     border-radius: 16px;
-     box-shadow: 0 0 20px #FF914Daa, 0 0 40px #FF6B0088;
-     text-align: center;
-     width: 320px;
+      position: relative;
+      z-index: 10;
+      background: #1E1E1E;
+      padding: 2rem 3rem;
+      border-radius: 16px;
+      box-shadow:
+        0 0 15px 5px #FF914D99,
+        0 0 30px 10px #FF6B0088;
+      text-align: center;
+      width: 320px;
+      color: #FFFFFF;
+      font-family: inherit;
     }
-
 
     .glow-icon {
       width: 120px;
@@ -395,6 +398,9 @@ app.get('/dashboard', (req, res) => {
       margin-bottom: 1.5rem;
       text-shadow: 0 0 10px #FF914Dbb;
       color: #FF6B00;
+      font-family: inherit;
+      font-weight: 900;
+      font-size: 2rem;
     }
 
     input[type="text"] {
@@ -408,6 +414,7 @@ app.get('/dashboard', (req, res) => {
       background-color: #1E1E1E;
       color: #FFFFFF;
       box-shadow: 0 0 8px 3px #FF6B00;
+      font-family: inherit;
       transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
     }
 
@@ -419,27 +426,27 @@ app.get('/dashboard', (req, res) => {
     }
 
     button {
-     background: #FF6B00;
-     border: none;
-     color: #000000; /* Black text normally */
-     padding: 0.7rem 1.2rem;
-     font-size: 1rem;
-     border-radius: 8px;
-     cursor: pointer;
-     width: 100%;
-     box-shadow: 0 0 6px 2px #FF6B00;
-     transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
-     user-select: none;
-   }
+      background: #FF6B00;
+      border: none;
+      color: #000000;
+      padding: 0.7rem 1.2rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      box-shadow: 0 0 6px 2px #FF6B00;
+      transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+      font-family: inherit;
+      font-weight: 700;
+    }
 
     button:hover,
     button:focus {
-     background: #FFFFFF;
-     color: #FFFFFF; /* White text on hover */
-     box-shadow: 0 0 10px 3px #FF6B0088; /* Toned-down glow */
-     outline: none;
-   }
-
+      background: #FFFFFF;
+      color: #FFFFFF;
+      box-shadow: 0 0 10px 3px #FF6B0088;
+      outline: none;
+    }
   </style>
 </head>
 <body>
@@ -499,7 +506,7 @@ app.get('/dashboard', (req, res) => {
         if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
           drops[i] = 0;
         }
-        drops[i] += 1.5;
+        drops[i] += 1;
       }
 
       requestAnimationFrame(drawMatrix);
@@ -733,7 +740,7 @@ app.get('/dashboard/view', async (req, res) => {
           if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
             drops[i] = 0;
           }
-          drops[i] += 1.5;
+          drops[i] += 1;
         }
 
         requestAnimationFrame(drawMatrix);
