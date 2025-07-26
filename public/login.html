@@ -1,0 +1,184 @@
+// 📥 Simple Login Page
+app.get('/dashboard', (req, res) => {
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" /> 
+  <title>TradeAssist A.I — Login</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0A0A0A;
+      color: #FFFFFF;
+      overflow-x: hidden;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    #matrixCanvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      background: #0A0A0A;
+      display: block; /* fix */
+    }
+
+ main {
+  position: relative;
+  z-index: 10;
+  background: #1E1E1E;
+  padding: 2rem 1.5rem;
+  border-radius: 16px;
+  box-shadow:
+    0 0 12px 2px rgba(255, 145, 77, 0.4),
+    0 0 20px 4px rgba(255, 107, 0, 0.25);
+  text-align: center;
+  width: 340px; /* fixed width */
+  color: #FFFFFF;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+
+    .glow-icon {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 1rem;
+      filter: drop-shadow(0 0 12px #FF6B00);
+    }
+
+    h1 {
+      margin-bottom: 1.5rem;
+      text-shadow: 0 0 10px #FF914Dbb;
+      color: #FF6B00;
+      font-weight: 900;
+      font-size: 2rem;
+    }
+
+    input[type="tel"] {
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      border: 2px solid #FF6B00;
+      width: 100%;
+      margin-bottom: 1.5rem;
+      font-size: 1rem;
+      box-sizing: border-box;
+      background-color: #1E1E1E;
+      color: #FFFFFF;
+      box-shadow: 0 0 8px 3px #FF6B00;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+    }
+
+    input[type="tel"]:focus {
+      outline: none;
+      border-color: #FF914D;
+      box-shadow: 0 0 12px 4px #FF914D;
+      background-color: #2a2a2a;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.9rem;
+      font-size: 1.2rem;
+      font-weight: 700;
+      background: #FF6B00;
+      color: #0A0A0A;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 6px 16px #FF6B0088;
+      transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+      margin-top: 1rem;
+    }
+
+    button:hover,
+    button:focus {
+      background: #FF914D;
+      color: #FFFFFF;
+      box-shadow: 0 8px 20px #FF6B0099;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="matrixCanvas"></canvas>
+
+  <main>
+    <svg class="glow-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <linearGradient id="orangeBolt" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#FF6B00" />
+          <stop offset="100%" stop-color="#FF914D" />
+        </linearGradient>
+      </defs>
+      <path d="M32 8c-11 0-20 9-20 20v4c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4v-4c0-11-9-20-20-20z"
+            fill="url(#orangeBolt)" stroke="#FFFFFF" stroke-width="2"/>
+      <path d="M20 36v-4c0-6.6 5.4-12 12-12s12 5.4 12 12v4"
+            fill="none" stroke="#FFFFFF" stroke-width="2"/>
+    </svg>
+
+    <h1>Enter Your Phone Number</h1>
+    <form action="/dashboard/view" method="GET" autocomplete="off">
+      <input type="tel" name="phone" pattern="[0-9\\s]+" placeholder="0400 000 000" required />
+      <button type="submit">View Dashboard</button>
+    </form>
+  </main>
+
+<script>
+window.onload = () => {
+  const canvas = document.getElementById('matrixCanvas');
+  const ctx = canvas.getContext('2d');
+  const fontSize = 20;
+  let columns;
+  let drops = [];
+
+  const symbols = [
+    '⊗', '⛏', '⚒', '⛓', '🛠', '🗜', '⚙', '⛭',
+    '✚', '╬', '♯', '†', '☗', '╧',
+    '#', '%', '&', '*', '+', '=', '-', '|', '/', '\\'
+  ];
+
+  function initMatrix() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    columns = Math.floor(canvas.width / fontSize);
+    drops = [];
+    for (let i = 0; i < columns; i++) {
+      drops[i] = Math.floor(Math.random() * (canvas.height / fontSize));
+    }
+  }
+
+  function drawMatrix() {
+    ctx.fillStyle = 'rgba(10, 10, 10, 0.1)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#FF6B00';
+    ctx.font = fontSize + 'px monospace';
+
+    for (let i = 0; i < columns; i++) {
+      const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+      ctx.fillText(symbol, i * fontSize, drops[i] * fontSize);
+      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+        drops[i] = 0;
+      }
+      drops[i]++;
+    }
+    requestAnimationFrame(drawMatrix);
+  }
+
+  window.addEventListener('resize', initMatrix);
+  initMatrix();
+  drawMatrix();
+};
+</script>
+
+</body>
+</html>`;
+  res.send(html);
+});
