@@ -165,9 +165,10 @@ window.onload = () => {
       const symbol = symbols[Math.floor(Math.random() * symbols.length)];
       ctx.fillText(symbol, i * fontSize, drops[i] * fontSize);
       if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+       if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
         drops[i] = 0;
       }
-      drops[i]++;
+      drops[i] += 0.3;
     }
     requestAnimationFrame(drawMatrix);
   }

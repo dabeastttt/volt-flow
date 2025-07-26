@@ -9,6 +9,9 @@ const fs = require('fs');
 const os = require('os');
 const fetch = require('node-fetch'); // for CommonJS, require like this
 
+const app = express();
+const port = process.env.PORT || 10000;
+
 const { saveVoicemail } = require('./db');
 const {
   logMessage,
@@ -28,8 +31,6 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY
 );
 
-app.set('view engine', 'ejs');
-app.set('views', './public'); // Point Express to your public folder for templates
 
 app.get('/api/messages', async (req, res) => {
   const phone = formatPhoneNumber(req.query.phone);
