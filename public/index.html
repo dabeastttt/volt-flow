@@ -21,14 +21,15 @@
       scroll-behavior: smooth;
     }
 
-    #matrixCanvas {
+    canvas {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
       z-index: 0;
-      background: #0A0A0A; /* ✅ Fixed */
+      background: #0A0A0A;
+      display: block;
     }
 
     main {
@@ -104,7 +105,7 @@
     select:focus {
       background-color: #2a2a2a;
       outline: none;
-      border-color: #FF6B00; /* ⬅️ glow color on focus */
+      border-color: #FF6B00;
       box-shadow: 0 0 10px #FF6B00;
     }
 
@@ -164,7 +165,7 @@
 </head>
 <body>
 
-<canvas id="matrixCanvas"></canvas>
+<canvas id="backgroundCanvas"></canvas>
 
 <main>
   <svg class="glow-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
@@ -185,7 +186,7 @@
   </svg>
 
   <h1>TradeAssist A.I</h1>
-  <h2>BUILT FOR TRADIES - BY TRADIES.</h2>
+  <h2>BUILT FOR TRADIES - WITH TRADIES.</h2>
 
   <form id="signupForm" autocomplete="off" novalidate>
     <label for="name">Full Name</label>
@@ -216,59 +217,83 @@
 <div id="loadingScreen">Onboarding your AI Receptionist...</div>
 
 <script>
-  const canvas = document.getElementById('matrixCanvas');
+  const canvas = document.getElementById('backgroundCanvas');
   const ctx = canvas.getContext('2d');
-  const fontSize = 20;
-  let columns, drops;
+  let width, height;
 
-  // Tool-inspired symbols (Unicode characters, including wrench + toolbox)
-  const symbols = [
-    '⊗', // bolt/nut
-    '⛏', // pickaxe
-    '⚒', // crossed hammers
-    '⛓', // chain
-    '🛠', // hammer & wrench combo
-    '🗜', // clamp/wrench
-    '⚙', // gear
-    '⛭', // gear alt
-    '✚', // screw tip
-    '╬', // steel bar
-    '♯', // bolt sharp
-    '†', // bolt cross
-    '☗', // chisel edge
-    '╧', // wrench jaw
-    '#', '%', '&', '*', '+', '=', '-', '|', '/', '\\'
-  ];
-
-  function initMatrix() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    columns = Math.floor(canvas.width / fontSize);
-    drops = Array(columns).fill(1);
+  function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
   }
+  resize();
+  window.addEventListener('resize', resize);
 
-  function drawMatrix() {
-    ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#FF6B00';
-    ctx.font = fontSize + 'px monospace';
-
-    for (let i = 0; i < columns; i++) {
-      const symbol = symbols[Math.floor(Math.random() * symbols.length)];
-      ctx.fillText(symbol, i * fontSize, drops[i] * fontSize);
-
-      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-        drops[i] = 0;
-      }
-      drops[i] += 1;
+  class Particle {
+    constructor() {
+      this.x = Math.random() * width;
+      this.y = Math.random() * height;
+      this.radius = 2 + Math.random() * 2;
+      this.vx = (Math.random() - 0.5) * 0.8;
+      this.vy = (Math.random() - 0.5) * 0.8;
+      this.alpha = 0.6 + Math.random() * 0.4;
     }
-
-    requestAnimationFrame(drawMatrix);
+    move() {
+      this.x += this.vx;
+      this.y += this.vy;
+      if(this.x < 0 || this.x > width) this.vx *= -1;
+      if(this.y < 0 || this.y > height) this.vy *= -1;
+    }
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 107, 0, ${this.alpha})`;
+      ctx.shadowColor = 'rgba(255, 107, 0, 0.7)';
+      ctx.shadowBlur = 8;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
   }
 
-  window.addEventListener('resize', initMatrix);
-  initMatrix();
-  drawMatrix();
+  const particleCount = 120;
+  const particles = [];
+  for(let i=0; i<particleCount; i++) {
+    particles.push(new Particle());
+  }
+
+  function connectParticles() {
+    for(let i = 0; i < particleCount; i++) {
+      for(let j = i + 1; j < particleCount; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if(dist < 120) {
+          ctx.beginPath();
+          ctx.strokeStyle = `rgba(255, 107, 0, ${1 - dist/120})`;
+          ctx.lineWidth = 1;
+          ctx.shadowColor = 'rgba(255, 107, 0, 0.5)';
+          ctx.shadowBlur = 6;
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+        }
+      }
+    }
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, width, height);
+    particles.forEach(p => {
+      p.move();
+      p.draw();
+    });
+    connectParticles();
+    requestAnimationFrame(animate);
+  }
+
+  animate();
 </script>
 
 <script>

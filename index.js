@@ -47,8 +47,6 @@ app.get('/api/messages', async (req, res) => {
   }
 });
 
-const app = express();
-const port = process.env.PORT || 10000;
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
@@ -364,6 +362,292 @@ app.post('/register', async (req, res) => {
   }
 });
 
+app.get('/dashboard/view', async (req, res) => {
+  const { phone: phoneRaw } = req.query;
+  if (!phoneRaw) return res.status(400).send('Phone number required');
+
+  // Escape HTML to prevent XSS
+  const escapeHTML = str => (str || '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+  })[c]);
+
+  // Format phone: remove non-digits (customize as needed)
+  function formatPhoneNumber(phone) {
+    if (!phone) return '';
+    return phone.replace(/\D/g, '');
+  }
+
+  const phone = formatPhoneNumber(phoneRaw);
+
+  try {
+    // Fetch messages from Supabase
+    const { data: messages, error: msgErr } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('phone', phone)
+      .order('created_at', { ascending: false });
+
+    // Fetch voicemails from Supabase
+    const { data: voicemails, error: vmErr } = await supabase
+      .from('voicemails')
+      .select('*')
+      .eq('phone', phone)
+      .order('created_at', { ascending: false });
+
+    if (msgErr || vmErr) throw new Error(msgErr?.message || vmErr?.message);
+
+    // Compose HTML response with all design & tables
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TradeAssist A.I Dashboard</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0A0A0A;
+      color: #FF914D;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    .glow-icon {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 1rem auto;
+      display: block;
+      filter: drop-shadow(0 0 10px #FF6B00);
+    }
+
+    #matrixCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      background: #0A0A0A;
+      display: block;
+    }
+
+    main {
+      position: relative;
+      z-index: 10;
+      width: 90%;
+      max-width: 960px;
+      margin: 2rem auto;
+      background: #1E1E1E;
+      border-radius: 16px;
+      box-shadow: 0 0 20px #FF914D99;
+      padding: 1.5rem;
+      box-sizing: border-box;
+    }
+
+    h2 {
+      color: #FF6B00;
+      text-align: center;
+      margin-bottom: 1rem;
+      text-shadow: 0 0 10px #FF914Dbb;
+    }
+
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      margin-bottom: 2rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      color: #FF914D;
+      table-layout: fixed;
+      word-wrap: break-word;
+    }
+
+    th, td {
+      border: 1px solid #FF6B00;
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+      word-break: break-word;
+    }
+
+    th {
+      background: #2a2a2a;
+      color: #FF6B00;
+    }
+
+    tr:nth-child(even) {
+      background-color: rgba(255, 145, 77, 0.05);
+    }
+
+    audio {
+      width: 100%;
+    }
+
+    @media (max-width: 600px) {
+      main {
+        width: 95%;
+        padding: 1rem;
+        margin: 1.5rem auto;
+      }
+
+      th, td {
+        font-size: 0.85rem;
+      }
+
+      .glow-icon {
+        width: 80px;
+        height: 80px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="matrixCanvas"></canvas>
+  <main>
+    <svg class="glow-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="orangeBolt" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#FF6B00" />
+          <stop offset="100%" stop-color="#FF914D" />
+        </linearGradient>
+      </defs>
+      <path d="M32 8c-11 0-20 9-20 20v4c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4v-4c0-11-9-20-20-20z"
+            fill="url(#orangeBolt)" stroke="#FFFFFF" stroke-width="2"/>
+      <path d="M20 36v-4c0-6.6 5.4-12 12-12s12 5.4 12 12v4"
+            fill="none" stroke="#FFFFFF" stroke-width="2"/>
+    </svg>
+
+    <h2>📨 Message History for ${escapeHTML(phone)}</h2>
+    <div class="table-container">
+      <table>
+        <tr><th>Time</th><th>Incoming</th><th>Reply</th></tr>
+        ${
+          messages?.length
+            ? messages.map(msg =>
+                `<tr>
+                  <td>${msg.created_at || '—'}</td>
+                  <td>${escapeHTML(msg.incoming || '—')}</td>
+                  <td>${escapeHTML(msg.outgoing || '—')}</td>
+                </tr>`).join('')
+            : '<tr><td colspan="3">No messages found.</td></tr>'
+        }
+      </table>
+    </div>
+
+    <h2>🎧 Voicemail Log</h2>
+    <div class="table-container">
+      <table>
+        <tr><th>Time</th><th>Audio</th><th>Transcript</th><th>AI Reply</th></tr>
+        ${
+          voicemails?.length
+            ? voicemails.map(vm =>
+                `<tr>
+                  <td>${vm.created_at || '—'}</td>
+                  <td>${vm.recording_url ? `<audio controls src="${vm.recording_url}"></audio>` : 'No audio'}</td>
+                  <td>${escapeHTML(vm.transcription || '—')}</td>
+                  <td>${escapeHTML(vm.ai_reply || '—')}</td>
+                </tr>`).join('')
+            : '<tr><td colspan="4">No voicemails found.</td></tr>'
+        }
+      </table>
+    </div>
+  </main>
+
+  <script>
+  window.onload = () => {
+    const canvas = document.getElementById('matrixCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+
+    function resize() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.radius = 2 + Math.random() * 2;
+        this.vx = (Math.random() - 0.5) * 0.8;
+        this.vy = (Math.random() - 0.5) * 0.8;
+        this.alpha = 0.6 + Math.random() * 0.4;
+      }
+      move() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if(this.x < 0 || this.x > width) this.vx *= -1;
+        if(this.y < 0 || this.y > height) this.vy *= -1;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = \`rgba(255, 107, 0, \${this.alpha})\`;
+        ctx.shadowColor = 'rgba(255, 107, 0, 0.7)';
+        ctx.shadowBlur = 8;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    const particleCount = 120;
+    const particles = [];
+    for(let i=0; i<particleCount; i++) {
+      particles.push(new Particle());
+    }
+
+    function connectParticles() {
+      for(let i = 0; i < particleCount; i++) {
+        for(let j = i + 1; j < particleCount; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if(dist < 120) {
+            ctx.beginPath();
+            ctx.strokeStyle = \`rgba(255, 107, 0, \${1 - dist/120})\`;
+            ctx.lineWidth = 1;
+            ctx.shadowColor = 'rgba(255, 107, 0, 0.5)';
+            ctx.shadowBlur = 6;
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+          }
+        }
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      particles.forEach(p => {
+        p.move();
+        p.draw();
+      });
+      connectParticles();
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  };
+  </script>
+</body>
+</html>`;
+
+    res.send(html);
+  } catch (err) {
+    console.error('Error loading dashboard:', err.message);
+    res.status(500).send('Internal server error');
+  }
+});
 
 
 
