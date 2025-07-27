@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -10,24 +10,23 @@
       box-sizing: border-box;
     }
 
-    body, html {
+    html, body {
       margin: 0;
       padding: 0;
-      min-height: 100%;
+      height: 100%;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: #0A0A0A;
       color: #FFFFFF;
-      overflow-x: hidden;
-      scroll-behavior: smooth;
+      overflow: hidden; /* lock background scroll */
     }
 
     canvas {
       position: fixed;
       top: 0;
       left: 0;
+      z-index: 0;
       width: 100%;
       height: 100%;
-      z-index: 0;
       background: #0A0A0A;
       display: block;
     }
@@ -36,11 +35,16 @@
       position: relative;
       z-index: 10;
       max-width: 440px;
-      margin: 3rem auto;
-      background: #1E1E1E;
+      height: 95vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      margin: 2rem auto;
+      background: rgba(30, 30, 30, 0.1); /* MUCH more transparent */
       border-radius: 16px;
-      box-shadow: 0 0 20px #FF914D99;
+      box-shadow: 0 0 20px #FF914D88;
       padding: 2.5rem 3rem;
+      backdrop-filter: blur(2.5px);
+      -webkit-backdrop-filter: blur(10px); /* Safari */
     }
 
     .glow-icon {
@@ -97,8 +101,8 @@
       font-size: 1rem;
       color: #FFFFFF;
       background-color: #1E1E1E;
-      transition: background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
       box-shadow: 0 0 8px #FF6B00;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
     }
 
     input:focus,
@@ -109,20 +113,12 @@
       box-shadow: 0 0 10px #FF6B00;
     }
 
-    input:-webkit-autofill,
-    input:-webkit-autofill:focus {
-      background-color: #1E1E1E !important;
-      -webkit-text-fill-color: #FFFFFF !important;
-      box-shadow: inset 0 0 0px 1000px #1E1E1E !important;
-      transition: background-color 0s ease-in-out 0s;
-    }
-
     button {
       width: 100%;
       padding: 0.9rem;
       font-size: 1.2rem;
       font-weight: 700;
-      background: #FF6B00;
+      background: rgba(255, 107, 0, 0.8);
       color: #0A0A0A;
       border: none;
       border-radius: 12px;
@@ -134,17 +130,10 @@
 
     button:hover,
     button:focus {
-      background: #FF914D;
+      background: rgba(255, 145, 77, 0.85);
       color: #FFFFFF;
       box-shadow: 0 8px 24px #FF914DCC;
       outline: none;
-    }
-
-    @media (max-width: 480px) {
-      main {
-        margin: 2rem 1rem;
-        padding: 2rem 1.5rem;
-      }
     }
 
     #loadingScreen {
@@ -161,6 +150,13 @@
       text-align: center;
       padding-top: 30vh;
     }
+
+    @media (max-width: 480px) {
+      main {
+        margin: 1.5rem 1rem;
+        padding: 2rem 1.5rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -176,13 +172,9 @@
       </linearGradient>
     </defs>
     <path d="M32 8c-11 0-20 9-20 20v4c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4v-4c0-11-9-20-20-20z"
-          fill="url(#orangeBolt)"
-          stroke="#FFFFFF"
-          stroke-width="2"/>
+          fill="url(#orangeBolt)" stroke="#FFFFFF" stroke-width="2"/>
     <path d="M20 36v-4c0-6.6 5.4-12 12-12s12 5.4 12 12v4"
-          fill="none"
-          stroke="#FFFFFF"
-          stroke-width="2"/>
+          fill="none" stroke="#FFFFFF" stroke-width="2"/>
   </svg>
 
   <h1>TradeAssist A.I</h1>
@@ -210,7 +202,6 @@
     <button type="submit">ONBOARD YOUR 24/7 Receptionist</button>
   </form>
 
-  <!-- NEW LOGIN BUTTON -->
   <button id="loginButton" type="button">Login to Dashboard</button>
 </main>
 
@@ -256,21 +247,17 @@
     }
   }
 
-  const particleCount = 120;
-  const particles = [];
-  for(let i=0; i<particleCount; i++) {
-    particles.push(new Particle());
-  }
+  const particles = Array.from({ length: 120 }, () => new Particle());
 
   function connectParticles() {
-    for(let i = 0; i < particleCount; i++) {
-      for(let j = i + 1; j < particleCount; j++) {
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
         const dx = particles[i].x - particles[j].x;
         const dy = particles[i].y - particles[j].y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if(dist < 120) {
+        if (dist < 120) {
           ctx.beginPath();
-          ctx.strokeStyle = `rgba(255, 107, 0, ${1 - dist/120})`;
+          ctx.strokeStyle = `rgba(255, 107, 0, ${1 - dist / 120})`;
           ctx.lineWidth = 1;
           ctx.shadowColor = 'rgba(255, 107, 0, 0.5)';
           ctx.shadowBlur = 6;
@@ -303,7 +290,6 @@
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-
     if (!form.checkValidity()) {
       form.reportValidity();
       return;
@@ -323,9 +309,7 @@
     try {
       const res = await fetch('/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
 
@@ -336,12 +320,11 @@
       }
     } catch (err) {
       alert("Registration error. Please try again.");
-      loadingScreen.style.display = 'none'; 
+      loadingScreen.style.display = 'none';
       button.disabled = false;
     }
   });
 
-  // NEW: Login button navigation
   document.getElementById('loginButton').addEventListener('click', () => {
     window.location.href = 'https://volt-flow.onrender.com/dashboard';
   });

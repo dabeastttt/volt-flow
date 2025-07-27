@@ -404,24 +404,21 @@ app.get('/dashboard/view', async (req, res) => {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>TradeAssist A.I Dashboard</title>
   <style>
+    /* Base reset */
     body, html {
       margin: 0;
       padding: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #0A0A0A;
+      background: rgba(10, 10, 10, 0.95); /* Slightly transparent black */
       color: #FF914D;
       overflow-x: hidden;
       min-height: 100vh;
+      /* Lock background scroll */
+      overscroll-behavior: none;
+      touch-action: none;
     }
 
-    .glow-icon {
-      width: 120px;
-      height: 120px;
-      margin: 0 auto 1rem auto;
-      display: block;
-      filter: drop-shadow(0 0 10px #FF6B00);
-    }
-
+    /* Prevent user interaction on background canvas */
     #matrixCanvas {
       position: fixed;
       top: 0;
@@ -429,7 +426,8 @@ app.get('/dashboard/view', async (req, res) => {
       width: 100%;
       height: 100%;
       z-index: 0;
-      background: #0A0A0A;
+      background: transparent;
+      pointer-events: none; /* Disable pointer events on canvas */
       display: block;
     }
 
@@ -439,12 +437,24 @@ app.get('/dashboard/view', async (req, res) => {
       width: 90%;
       max-width: 960px;
       margin: 2rem auto;
-      background: #1E1E1E;
+      background: rgba(30, 30, 30, 0.25); /* transparent dark background */
+      backdrop-filter: blur(2.5px);
       border-radius: 16px;
       box-shadow: 0 0 20px #FF914D99;
       padding: 1.5rem;
       box-sizing: border-box;
+      overflow-y: auto;
+      max-height: 85vh; /* Prevent the main container from exceeding viewport height */
     }
+
+    .glow-icon {
+      width: 100px;
+      height: 100px;
+      display: block;
+      margin: 0 auto 1rem auto;
+      filter: drop-shadow(0 0 10px #FF6B00);
+    }
+
 
     h2 {
       color: #FF6B00;
@@ -457,14 +467,16 @@ app.get('/dashboard/view', async (req, res) => {
       width: 100%;
       overflow-x: auto;
       margin-bottom: 2rem;
+      -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
       color: #FF914D;
-      table-layout: fixed;
+      table-layout: auto;
       word-wrap: break-word;
+      min-width: 600px; /* Minimum width to avoid too narrow tables on mobile */
     }
 
     th, td {
@@ -473,6 +485,7 @@ app.get('/dashboard/view', async (req, res) => {
       text-align: left;
       vertical-align: top;
       word-break: break-word;
+      hyphens: auto;
     }
 
     th {
@@ -486,22 +499,25 @@ app.get('/dashboard/view', async (req, res) => {
 
     audio {
       width: 100%;
+      outline: none;
     }
 
+    /* Responsive Styles */
     @media (max-width: 600px) {
       main {
         width: 95%;
         padding: 1rem;
         margin: 1.5rem auto;
+        max-height: 90vh;
       }
 
       th, td {
-        font-size: 0.85rem;
+        font-size: 0.75rem;
+        padding: 6px;
       }
 
-      .glow-icon {
-        width: 80px;
-        height: 80px;
+      table {
+        min-width: 100%; /* Let the table adapt fully on small screens */
       }
     }
   </style>
@@ -509,7 +525,7 @@ app.get('/dashboard/view', async (req, res) => {
 <body>
   <canvas id="matrixCanvas"></canvas>
   <main>
-    <svg class="glow-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+    <svg class="glow-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <defs>
         <linearGradient id="orangeBolt" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stop-color="#FF6B00" />
@@ -520,12 +536,16 @@ app.get('/dashboard/view', async (req, res) => {
             fill="url(#orangeBolt)" stroke="#FFFFFF" stroke-width="2"/>
       <path d="M20 36v-4c0-6.6 5.4-12 12-12s12 5.4 12 12v4"
             fill="none" stroke="#FFFFFF" stroke-width="2"/>
+
     </svg>
 
     <h2>📨 Message History for ${escapeHTML(phone)}</h2>
     <div class="table-container">
       <table>
-        <tr><th>Time</th><th>Incoming</th><th>Reply</th></tr>
+        <thead>
+          <tr><th>Time</th><th>Incoming</th><th>Reply</th></tr>
+        </thead>
+        <tbody>
         ${
           messages?.length
             ? messages.map(msg =>
@@ -534,15 +554,19 @@ app.get('/dashboard/view', async (req, res) => {
                   <td>${escapeHTML(msg.incoming || '—')}</td>
                   <td>${escapeHTML(msg.outgoing || '—')}</td>
                 </tr>`).join('')
-            : '<tr><td colspan="3">No messages found.</td></tr>'
+            : '<tr><td colspan="3" style="text-align:center;">No messages found.</td></tr>'
         }
+        </tbody>
       </table>
     </div>
 
     <h2>🎧 Voicemail Log</h2>
     <div class="table-container">
       <table>
-        <tr><th>Time</th><th>Audio</th><th>Transcript</th><th>AI Reply</th></tr>
+        <thead>
+          <tr><th>Time</th><th>Audio</th><th>Transcript</th><th>AI Reply</th></tr>
+        </thead>
+        <tbody>
         ${
           voicemails?.length
             ? voicemails.map(vm =>
@@ -552,8 +576,9 @@ app.get('/dashboard/view', async (req, res) => {
                   <td>${escapeHTML(vm.transcription || '—')}</td>
                   <td>${escapeHTML(vm.ai_reply || '—')}</td>
                 </tr>`).join('')
-            : '<tr><td colspan="4">No voicemails found.</td></tr>'
+            : '<tr><td colspan="4" style="text-align:center;">No voicemails found.</td></tr>'
         }
+        </tbody>
       </table>
     </div>
   </main>
