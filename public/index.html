@@ -31,21 +31,21 @@
       display: block;
     }
 
-    main {
-      position: relative;
-      z-index: 10;
-      max-width: 440px;
-      height: 95vh;
-      overflow-y: auto;
-      overflow-x: hidden;
-      margin: 2rem auto;
-      background: rgba(30, 30, 30, 0.1); /* MUCH more transparent */
-      border-radius: 16px;
-      box-shadow: 0 0 20px #FF914D88;
-      padding: 2.5rem 3rem;
-      backdrop-filter: blur(2.5px);
-      -webkit-backdrop-filter: blur(10px); /* Safari */
-    }
+main {
+  position: relative;
+  z-index: 10;
+  max-width: 340px;         /* ⬅️ narrower */
+  height: auto;             /* ⬅️ let it grow with content */
+  overflow-y: visible;      /* ⬅️ remove scroll unless needed */
+  overflow-x: hidden;
+  margin: 2rem auto;
+  background: rgba(30, 30, 30, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 0 20px #FF914D88;
+  padding: 1.5rem 1.5rem;    /* ⬅️ tighter padding */
+  backdrop-filter: blur(2.5px);
+  -webkit-backdrop-filter: blur(10px);
+}
 
     .glow-icon {
       display: block;
